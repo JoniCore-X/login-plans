@@ -1,5 +1,13 @@
+from app.bootstrap.application import Application
+from app.core.config import get_settings
+
+
 def main() -> None:
-    print("Login Plans iniciado correctamente")
+    settings = get_settings()
+
+    application = Application(settings)
+
+    application.start()
 
 
 if __name__ == "__main__":

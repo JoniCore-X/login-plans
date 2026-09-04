@@ -7,7 +7,9 @@ name = "login-plans"
 version = "0.1.0"
 description = "Sistema avanzado de autenticacion y gestion de planes"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "pydantic-settings",
+]
 
 [project.optional-dependencies]
 dev = [
