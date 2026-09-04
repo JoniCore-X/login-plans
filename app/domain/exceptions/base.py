@@ -1,2 +1,2 @@
 class DomainError(Exception):
-    pass
+    """Base exception for domain-level failures."""

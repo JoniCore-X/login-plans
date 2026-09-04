@@ -4,11 +4,23 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api.exception_handlers import (
+    domain_error_handler,
+    invalid_email_handler,
+    user_already_exists_handler,
+    user_not_found_handler,
+)
 from app.api.router import router
 from app.application.ports.password_hasher import PasswordHasher
 from app.bootstrap.container import ApplicationContainer
 from app.core.config import Settings
 from app.core.logging import configure_logging
+from app.domain.exceptions.base import DomainError
+from app.domain.exceptions.user import (
+    InvalidEmailError,
+    UserAlreadyExistsError,
+    UserNotFoundError,
+)
 from app.infrastructure.security import Argon2PasswordHasher
 
 logger = logging.getLogger(__name__)
@@ -52,6 +64,26 @@ class Application:
         )
 
         application.state.container = self.container
+
+        application.add_exception_handler(
+            UserAlreadyExistsError,
+            user_already_exists_handler,
+        )
+
+        application.add_exception_handler(
+            UserNotFoundError,
+            user_not_found_handler,
+        )
+
+        application.add_exception_handler(
+            InvalidEmailError,
+            invalid_email_handler,
+        )
+
+        application.add_exception_handler(
+            DomainError,
+            domain_error_handler,
+        )
 
         application.include_router(router)
 

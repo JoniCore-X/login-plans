@@ -2,8 +2,12 @@ from app.domain.exceptions.base import DomainError
 
 
 class UserAlreadyExistsError(DomainError):
-    pass
+    """Raised when a user already exists."""
 
 
 class UserNotFoundError(DomainError):
-    pass
+    """Raised when a user cannot be found."""
+
+
+class InvalidEmailError(DomainError):
+    """Raised when an email is invalid."""

@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from app.domain.exceptions.user import InvalidEmailError
+
 
 @dataclass(frozen=True, slots=True)
 class Email:
@@ -9,9 +11,17 @@ class Email:
         normalized = self.value.strip().lower()
 
         if not normalized:
-            raise ValueError("Email cannot be empty")
+            raise InvalidEmailError(
+                "Email cannot be empty",
+            )
 
         if "@" not in normalized:
-            raise ValueError("Invalid email")
+            raise InvalidEmailError(
+                "Invalid email",
+            )
 
-        object.__setattr__(self, "value", normalized)
+        object.__setattr__(
+            self,
+            "value",
+            normalized,
+        )
