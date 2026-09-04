@@ -20,8 +20,11 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         exc_value: BaseException | None,
         traceback: object | None,
     ) -> None:
-        if exc_type is not None:
-            await self.session.rollback()
-            return
+        try:
+            if exc_type is not None:
+                await self.session.rollback()
+                return
 
-        await self.session.commit()
+            await self.session.commit()
+        finally:
+            await self.session.close()

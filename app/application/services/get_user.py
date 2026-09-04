@@ -1,22 +1,24 @@
 from app.application.dto.user import UserDTO
+from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
 from app.application.queries.get_user import GetUserQuery
 from app.domain.exceptions.user import UserNotFoundError
-from app.domain.repositories.unit_of_work import UnitOfWork
 
 
 class GetUserService:
     def __init__(
         self,
-        unit_of_work: UnitOfWork,
+        unit_of_work_factory: UnitOfWorkFactory,
     ) -> None:
-        self.unit_of_work = unit_of_work
+        self.unit_of_work_factory = unit_of_work_factory
 
     async def execute(
         self,
         query: GetUserQuery,
     ) -> UserDTO:
-        async with self.unit_of_work:
-            user = await self.unit_of_work.users.get_by_id(
+        unit_of_work = self.unit_of_work_factory.create()
+
+        async with unit_of_work:
+            user = await unit_of_work.users.get_by_id(
                 query.user_id,
             )
 

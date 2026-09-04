@@ -1,19 +1,19 @@
 from app.application.commands.register_user import RegisterUserCommand
 from app.application.dto.user import UserDTO
 from app.application.ports.password_hasher import PasswordHasher
+from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
 from app.domain.entities.user import User
 from app.domain.exceptions.user import UserAlreadyExistsError
-from app.domain.repositories.unit_of_work import UnitOfWork
 from app.domain.value_objects.email import Email
 
 
 class RegisterUserService:
     def __init__(
         self,
-        unit_of_work: UnitOfWork,
+        unit_of_work_factory: UnitOfWorkFactory,
         password_hasher: PasswordHasher,
     ) -> None:
-        self.unit_of_work = unit_of_work
+        self.unit_of_work_factory = unit_of_work_factory
         self.password_hasher = password_hasher
 
     async def execute(
@@ -22,8 +22,10 @@ class RegisterUserService:
     ) -> UserDTO:
         email = Email(command.email)
 
-        async with self.unit_of_work:
-            exists = await self.unit_of_work.users.exists_by_email(
+        unit_of_work = self.unit_of_work_factory.create()
+
+        async with unit_of_work:
+            exists = await unit_of_work.users.exists_by_email(
                 email.value,
             )
 
@@ -41,7 +43,7 @@ class RegisterUserService:
                 password_hash=password_hash,
             )
 
-            await self.unit_of_work.users.add(user)
+            await unit_of_work.users.add(user)
 
             return UserDTO(
                 id=user.id,

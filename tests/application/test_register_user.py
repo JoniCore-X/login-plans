@@ -68,6 +68,14 @@ class FakeUnitOfWork(UnitOfWork):
         self.committed = True
 
 
+class FakeUnitOfWorkFactory:
+    def __init__(self) -> None:
+        self.unit_of_work = FakeUnitOfWork()
+
+    def create(self) -> FakeUnitOfWork:
+        return self.unit_of_work
+
+
 class FakePasswordHasher(PasswordHasher):
     def hash(self, password: str) -> PasswordHash:
         return PasswordHash(f"hashed:{password}")
@@ -82,11 +90,11 @@ class FakePasswordHasher(PasswordHasher):
 
 @pytest.mark.asyncio
 async def test_register_user() -> None:
-    unit_of_work = FakeUnitOfWork()
+    unit_of_work_factory = FakeUnitOfWorkFactory()
     password_hasher = FakePasswordHasher()
 
     service = RegisterUserService(
-        unit_of_work=unit_of_work,
+        unit_of_work_factory=unit_of_work_factory,
         password_hasher=password_hasher,
     )
 
@@ -99,17 +107,17 @@ async def test_register_user() -> None:
 
     assert result.email == "user@example.com"
     assert isinstance(result.id, UUID)
-    assert unit_of_work.committed is True
-    assert len(unit_of_work.users.users) == 1
+    assert unit_of_work_factory.unit_of_work.committed is True
+    assert len(unit_of_work_factory.unit_of_work.users.users) == 1
 
 
 @pytest.mark.asyncio
 async def test_register_user_rejects_duplicate_email() -> None:
-    unit_of_work = FakeUnitOfWork()
+    unit_of_work_factory = FakeUnitOfWorkFactory()
     password_hasher = FakePasswordHasher()
 
     service = RegisterUserService(
-        unit_of_work=unit_of_work,
+        unit_of_work_factory=unit_of_work_factory,
         password_hasher=password_hasher,
     )
 
