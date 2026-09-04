@@ -8,9 +8,12 @@ version = "0.1.0"
 description = "Sistema avanzado de autenticacion y gestion de planes"
 requires-python = ">=3.12"
 dependencies = [
+    "alembic",
+    "asyncpg",
     "fastapi",
     "httpx",
     "pydantic-settings",
+    "sqlalchemy[asyncio]",
     "uvicorn",
     "watchfiles",
 ]
@@ -18,16 +21,19 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-asyncio",
     "ruff",
     "mypy",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
 
 [tool.ruff]
 line-length = 88
 target-version = "py312"
+exclude = [".venv", "app/database/migrations"]
 
 [tool.ruff.lint]
 select = [
@@ -45,3 +51,4 @@ indent-style = "space"
 [tool.mypy]
 python_version = "3.12"
 strict = true
+exclude = ["app/database/migrations"]

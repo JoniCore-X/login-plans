@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from app.api.router import router
 from app.core.config import Settings
 from app.core.logging import configure_logging
+from app.infrastructure.database import Database
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 class Application:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
+        self.database = Database(settings)
 
     def create(self) -> FastAPI:
         configure_logging(self.settings.debug)

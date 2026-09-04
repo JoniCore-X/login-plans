@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,6 +8,7 @@ class Settings(BaseSettings):
     app_name: str = "login-plans"
     app_env: str = "development"
     debug: bool = False
+    database_url: SecretStr
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -18,4 +20,4 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    return Settings()  # type: ignore[call-arg]

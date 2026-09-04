@@ -1,0 +1,31 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: login_plans_postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: login_plans
+      POSTGRES_USER: login_plans
+      POSTGRES_PASSWORD: login_plans_dev_password
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U login_plans -d login_plans"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+volumes:
+  postgres_data:
