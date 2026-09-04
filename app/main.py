@@ -1,14 +1,15 @@
+from fastapi import FastAPI
+
 from app.bootstrap.application import Application
 from app.core.config import get_settings
 
 
-def main() -> None:
+def create_application() -> FastAPI:
     settings = get_settings()
 
     application = Application(settings)
 
-    application.start()
+    return application.create()
 
 
-if __name__ == "__main__":
-    main()
+app = create_application()

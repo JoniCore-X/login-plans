@@ -1,5 +1,10 @@
-from app.main import main
+from fastapi import FastAPI
+
+from app.main import create_application
 
 
-def test_main_runs_without_error() -> None:
-    assert main() is None
+def test_create_application() -> None:
+    application = create_application()
+
+    assert isinstance(application, FastAPI)
+    assert application.title == "login-plans"
