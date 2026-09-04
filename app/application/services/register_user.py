@@ -5,6 +5,7 @@ from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
 from app.domain.entities.user import User
 from app.domain.exceptions.user import UserAlreadyExistsError
 from app.domain.value_objects.email import Email
+from app.domain.value_objects.password import PlainPassword
 
 
 class RegisterUserService:
@@ -21,6 +22,7 @@ class RegisterUserService:
         command: RegisterUserCommand,
     ) -> UserDTO:
         email = Email(command.email)
+        password = PlainPassword(command.password)
 
         unit_of_work = self.unit_of_work_factory.create()
 
@@ -35,7 +37,7 @@ class RegisterUserService:
                 )
 
             password_hash = self.password_hasher.hash(
-                command.password,
+                password,
             )
 
             user = User.create(

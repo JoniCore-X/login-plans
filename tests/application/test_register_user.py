@@ -9,6 +9,7 @@ from app.domain.entities.user import User
 from app.domain.exceptions.user import UserAlreadyExistsError
 from app.domain.repositories.unit_of_work import UnitOfWork
 from app.domain.repositories.user_repository import UserRepository
+from app.domain.value_objects.password import PlainPassword
 from app.domain.value_objects.password_hash import PasswordHash
 
 
@@ -77,15 +78,20 @@ class FakeUnitOfWorkFactory:
 
 
 class FakePasswordHasher(PasswordHasher):
-    def hash(self, password: str) -> PasswordHash:
-        return PasswordHash(f"hashed:{password}")
+    def hash(
+        self,
+        password: PlainPassword,
+    ) -> PasswordHash:
+        return PasswordHash(
+            f"hashed:{password.value}",
+        )
 
     def verify(
         self,
-        password: str,
+        password: PlainPassword,
         password_hash: PasswordHash,
     ) -> bool:
-        return password_hash.value == f"hashed:{password}"
+        return password_hash.value == (f"hashed:{password.value}")
 
 
 @pytest.mark.asyncio
