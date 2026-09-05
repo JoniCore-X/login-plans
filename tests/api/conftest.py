@@ -1,32 +1,28 @@
 import httpx
 import pytest_asyncio
 from fastapi import FastAPI
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
-from app.bootstrap.application import Application
-from app.bootstrap.container import ApplicationContainer
-from app.core.config import get_settings
-from app.infrastructure.security import Argon2PasswordHasher
+from app.core.config import Settings
+from tests.factories import TestApplicationFactory
+
+
+@pytest_asyncio.fixture
+async def test_application_factory(
+    test_settings: Settings,
+    test_session_factory: async_sessionmaker[AsyncSession],
+) -> TestApplicationFactory:
+    return TestApplicationFactory(
+        settings=test_settings,
+        session_factory=test_session_factory,
+    )
 
 
 @pytest_asyncio.fixture
 async def test_app(
-    test_uow_factory: UnitOfWorkFactory,
+    test_application_factory: TestApplicationFactory,
 ) -> FastAPI:
-    settings = get_settings()
-
-    container = ApplicationContainer(
-        settings=settings,
-        password_hasher=Argon2PasswordHasher(),
-        unit_of_work_factory=test_uow_factory,
-    )
-
-    application = Application(
-        settings=settings,
-        container=container,
-    )
-
-    return application.create()
+    return test_application_factory.create()
 
 
 @pytest_asyncio.fixture

@@ -1,3 +1,4 @@
+from tests.factories.application import TestApplicationFactory
 from tests.factories.commands import (
     register_user_command_factory,
 )
@@ -14,6 +15,7 @@ from tests.factories.values import (
 
 __all__ = [
     "RegistrationScenario",
+    "TestApplicationFactory",
     "email_factory",
     "password_hash_factory",
     "plain_password_factory",

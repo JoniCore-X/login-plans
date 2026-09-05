@@ -1,10 +1,17 @@
 from fastapi import FastAPI
 
-from app.main import create_application
+from app.bootstrap.application import Application
+from app.core.config import Settings
 
 
-def test_create_application() -> None:
-    application = create_application()
+def test_create_application(
+    test_settings: Settings,
+) -> None:
+    application = Application(
+        test_settings,
+    )
 
-    assert isinstance(application, FastAPI)
-    assert application.title == "login-plans-test"
+    app = application.create()
+
+    assert isinstance(app, FastAPI)
+    assert app.title == "login-plans-test"

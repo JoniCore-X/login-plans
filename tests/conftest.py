@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
-from app.core.config import get_settings
+from app.core.config import Settings, get_settings
 from app.database.engine import create_database_engine
 from app.infrastructure.unit_of_work_factory import (
     SqlAlchemyUnitOfWorkFactory,
@@ -82,3 +82,8 @@ async def test_uow_factory(
 @pytest.fixture
 def registration_scenario() -> RegistrationScenario:
     return registration_scenario_factory()
+
+
+@pytest.fixture
+def test_settings() -> Settings:
+    return get_settings()
