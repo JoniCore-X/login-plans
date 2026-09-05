@@ -6,6 +6,7 @@ from app.application.auth.services import (
     RotateSessionService,
 )
 from app.application.ports.clock import Clock
+from app.application.ports.health_checker import HealthChecker
 from app.application.ports.password_hasher import PasswordHasher
 from app.application.ports.rate_limiter import RateLimiter
 from app.application.ports.session_credentials import (
@@ -20,6 +21,9 @@ from app.application.users.services import (
 from app.core.config import Settings
 from app.infrastructure.clock import SystemClock
 from app.infrastructure.database import Database
+from app.infrastructure.persistence.postgres_health import (
+    PostgresHealthChecker,
+)
 from app.infrastructure.security.rate_limiter import (
     InMemoryRateLimiter,
 )
@@ -43,6 +47,7 @@ class ApplicationContainer:
         clock: Clock | None = None,
         credential_generator: SessionCredentialGenerator | None = None,
         rate_limiter: RateLimiter | None = None,
+        health_checker: HealthChecker | None = None,
     ) -> None:
         self.settings = settings
         self.database = Database(settings)
@@ -65,6 +70,12 @@ class ApplicationContainer:
                 window=LOGIN_RATE_LIMIT_WINDOW,
             )
 
+        if health_checker is None:
+            health_checker = PostgresHealthChecker(
+                self.database.session_factory,
+            )
+
+        self.health_checker = health_checker
         self.unit_of_work_factory = unit_of_work_factory
         self.password_hasher = password_hasher
         self.clock = clock
@@ -132,6 +143,7 @@ def create_container(
     clock: Clock | None = None,
     credential_generator: SessionCredentialGenerator | None = None,
     rate_limiter: RateLimiter | None = None,
+    health_checker: HealthChecker | None = None,
 ) -> ApplicationContainer:
     return ApplicationContainer(
         settings=settings,
@@ -140,4 +152,5 @@ def create_container(
         clock=clock,
         credential_generator=credential_generator,
         rate_limiter=rate_limiter,
+        health_checker=health_checker,
     )

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.application.ports.health_checker import HealthChecker
 from app.application.ports.rate_limiter import RateLimiter
 from app.bootstrap.application import Application
 from app.bootstrap.container import ApplicationContainer
@@ -26,6 +27,7 @@ class TestApplicationFactory:
         self,
         *,
         rate_limiter: RateLimiter | None = None,
+        health_checker: HealthChecker | None = None,
     ) -> FastAPI:
         unit_of_work_factory = SqlAlchemyUnitOfWorkFactory(
             self.session_factory,
@@ -36,6 +38,7 @@ class TestApplicationFactory:
             password_hasher=Argon2PasswordHasher(),
             unit_of_work_factory=unit_of_work_factory,
             rate_limiter=rate_limiter,
+            health_checker=health_checker,
         )
 
         application = Application(
