@@ -92,6 +92,21 @@ async def authentication_error_handler(
     )
 
 
+async def rate_limit_exceeded_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=429,
+        content={
+            "error": {
+                "code": "RATE_LIMIT_EXCEEDED",
+                "message": "Too many attempts. Try again later.",
+            },
+        },
+    )
+
+
 async def domain_error_handler(
     request: Request,
     exc: Exception,

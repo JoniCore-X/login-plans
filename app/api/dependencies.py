@@ -3,7 +3,10 @@ from typing import cast
 
 from fastapi import Request
 
-from app.application.auth.services import AuthenticationService
+from app.application.auth.services import (
+    AuthenticationService,
+    LogoutService,
+)
 from app.application.users.services import (
     GetUserService,
     LoginUserService,
@@ -46,6 +49,14 @@ def get_authentication_service(
     container = get_application_container(request)
 
     return container.create_authentication_service()
+
+
+def get_logout_service(
+    request: Request,
+) -> LogoutService:
+    container = get_application_container(request)
+
+    return container.create_logout_service()
 
 
 def get_get_user_service(

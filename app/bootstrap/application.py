@@ -9,12 +9,16 @@ from app.api.exception_handlers import (
     domain_error_handler,
     invalid_credentials_handler,
     invalid_email_handler,
+    rate_limit_exceeded_handler,
     user_already_exists_handler,
     user_cannot_authenticate_handler,
     user_not_found_handler,
 )
 from app.api.router import router
-from app.application.auth.exceptions import AuthenticationError
+from app.application.auth.exceptions import (
+    AuthenticationError,
+    RateLimitExceededError,
+)
 from app.application.ports.password_hasher import PasswordHasher
 from app.application.users.exceptions import (
     InvalidCredentialsError,
@@ -105,6 +109,11 @@ class Application:
         application.add_exception_handler(
             AuthenticationError,
             authentication_error_handler,
+        )
+
+        application.add_exception_handler(
+            RateLimitExceededError,
+            rate_limit_exceeded_handler,
         )
 
         application.add_exception_handler(

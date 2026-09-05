@@ -1,8 +1,10 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.users.ports import UserRepository
 from app.domain.users.entities import User
+from app.domain.users.exceptions import UserAlreadyExistsError
 from app.domain.users.value_objects import Email, UserId
 from app.infrastructure.persistence.mappers.user import (
     user_to_domain,
@@ -19,6 +21,13 @@ class PostgresUserRepository(UserRepository):
         model = user_to_model(user)
 
         self.session.add(model)
+
+        try:
+            await self.session.flush()
+        except IntegrityError as exc:
+            raise UserAlreadyExistsError(
+                "A user with this email already exists",
+            ) from exc
 
     async def get_by_id(
         self,

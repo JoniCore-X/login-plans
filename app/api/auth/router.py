@@ -2,7 +2,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
-from app.api.auth.dependencies import get_authenticated_user
+from app.api.auth.dependencies import (
+    enforce_login_rate_limit,
+    get_authenticated_user,
+    get_bearer_credential,
+)
 from app.api.auth.schemas import (
     LoginRequest,
     LoginResponse,
@@ -12,9 +16,11 @@ from app.api.auth.schemas import (
 )
 from app.api.dependencies import (
     get_login_user_service,
+    get_logout_service,
     get_register_user_service,
 )
 from app.application.auth.dto import AuthenticatedUser
+from app.application.auth.services import LogoutService
 from app.application.users.commands import (
     LoginUserCommand,
     RegisterUserCommand,
@@ -62,6 +68,7 @@ async def register(
     "/login",
     response_model=LoginResponse,
     status_code=status.HTTP_200_OK,
+    dependencies=[Depends(enforce_login_rate_limit)],
 )
 async def login(
     request: LoginRequest,
@@ -99,4 +106,23 @@ async def me(
     return MeResponse(
         user_id=authenticated_user.user_id,
         session_id=authenticated_user.session_id,
+    )
+
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def logout(
+    credential: Annotated[
+        str,
+        Depends(get_bearer_credential),
+    ],
+    service: Annotated[
+        LogoutService,
+        Depends(get_logout_service),
+    ],
+) -> None:
+    await service.execute(
+        credential,
     )
