@@ -34,6 +34,8 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = [
     "integration: tests that require external infrastructure",
+    "regression: critical existing behavior that must not break",
+    "slow: tests that may take significant time",
 ]
 
 [tool.coverage.run]
