@@ -20,6 +20,13 @@ class SessionModel(Base):
         index=True,
     )
 
+    credential_hash: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+
     status: Mapped[str] = mapped_column(
         String(32),
         nullable=False,

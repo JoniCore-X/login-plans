@@ -77,5 +77,6 @@ async def login(
     return LoginResponse(
         user_id=result.user_id,
         session_id=result.session_id,
+        credential=result.credential,
         expires_at=result.expires_at,
     )

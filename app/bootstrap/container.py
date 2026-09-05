@@ -1,5 +1,8 @@
 from app.application.ports.clock import Clock
 from app.application.ports.password_hasher import PasswordHasher
+from app.application.ports.session_credentials import (
+    SessionCredentialGenerator,
+)
 from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
 from app.application.users.services import (
     GetUserService,
@@ -9,6 +12,9 @@ from app.application.users.services import (
 from app.core.config import Settings
 from app.infrastructure.clock import SystemClock
 from app.infrastructure.database import Database
+from app.infrastructure.security.session_credentials import (
+    SecureSessionCredentialGenerator,
+)
 from app.infrastructure.unit_of_work_factory import (
     SqlAlchemyUnitOfWorkFactory,
 )
@@ -21,6 +27,7 @@ class ApplicationContainer:
         password_hasher: PasswordHasher,
         unit_of_work_factory: UnitOfWorkFactory | None = None,
         clock: Clock | None = None,
+        credential_generator: SessionCredentialGenerator | None = None,
     ) -> None:
         self.settings = settings
         self.database = Database(settings)
@@ -33,9 +40,13 @@ class ApplicationContainer:
         if clock is None:
             clock = SystemClock()
 
+        if credential_generator is None:
+            credential_generator = SecureSessionCredentialGenerator()
+
         self.unit_of_work_factory = unit_of_work_factory
         self.password_hasher = password_hasher
         self.clock = clock
+        self.credential_generator = credential_generator
 
     def create_register_user_service(
         self,
@@ -53,6 +64,7 @@ class ApplicationContainer:
             unit_of_work_factory=self.unit_of_work_factory,
             password_hasher=self.password_hasher,
             clock=self.clock,
+            credential_generator=self.credential_generator,
         )
 
     def create_get_user_service(
@@ -68,10 +80,12 @@ def create_container(
     password_hasher: PasswordHasher,
     unit_of_work_factory: UnitOfWorkFactory | None = None,
     clock: Clock | None = None,
+    credential_generator: SessionCredentialGenerator | None = None,
 ) -> ApplicationContainer:
     return ApplicationContainer(
         settings=settings,
         password_hasher=password_hasher,
         unit_of_work_factory=unit_of_work_factory,
         clock=clock,
+        credential_generator=credential_generator,
     )

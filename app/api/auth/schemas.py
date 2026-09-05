@@ -29,6 +29,7 @@ class LoginResponse(BaseModel):
 
     user_id: UUID
     session_id: UUID
+    credential: str
     expires_at: datetime
 
 

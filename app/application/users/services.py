@@ -3,6 +3,9 @@ from uuid import uuid4
 
 from app.application.ports.clock import Clock
 from app.application.ports.password_hasher import PasswordHasher
+from app.application.ports.session_credentials import (
+    SessionCredentialGenerator,
+)
 from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
 from app.application.users.commands import (
     LoginUserCommand,
@@ -115,10 +118,12 @@ class LoginUserService:
         unit_of_work_factory: UnitOfWorkFactory,
         password_hasher: PasswordHasher,
         clock: Clock,
+        credential_generator: SessionCredentialGenerator,
     ) -> None:
         self.unit_of_work_factory = unit_of_work_factory
         self.password_hasher = password_hasher
         self.clock = clock
+        self.credential_generator = credential_generator
 
     async def execute(
         self,
@@ -164,9 +169,16 @@ class LoginUserService:
 
                 await unit_of_work.users.add(user)
 
+            credential = self.credential_generator.generate()
+
+            credential_hash = self.credential_generator.hash(
+                credential,
+            )
+
             session = Session.create(
                 session_id=uuid4(),
                 user_id=user.id,
+                credential_hash=credential_hash,
                 now=now,
                 expires_at=now + SESSION_DURATION,
             )
@@ -176,5 +188,6 @@ class LoginUserService:
             return AuthenticationDTO(
                 user_id=user.id.value,
                 session_id=session.id.value,
+                credential=credential.value,
                 expires_at=session.expires_at,
             )

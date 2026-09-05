@@ -3,7 +3,10 @@ from datetime import datetime
 from uuid import UUID
 
 from app.domain.sessions.enums import SessionStatus
-from app.domain.sessions.value_objects import SessionId
+from app.domain.sessions.value_objects import (
+    SessionCredentialHash,
+    SessionId,
+)
 from app.domain.users.value_objects import UserId
 
 
@@ -11,6 +14,7 @@ from app.domain.users.value_objects import UserId
 class Session:
     id: SessionId
     user_id: UserId
+    credential_hash: SessionCredentialHash
     status: SessionStatus
     created_at: datetime
     expires_at: datetime
@@ -22,12 +26,14 @@ class Session:
         *,
         session_id: UUID,
         user_id: UserId,
+        credential_hash: SessionCredentialHash,
         now: datetime,
         expires_at: datetime,
     ) -> "Session":
         return cls(
             id=SessionId(session_id),
             user_id=user_id,
+            credential_hash=credential_hash,
             status=SessionStatus.ACTIVE,
             created_at=now,
             expires_at=expires_at,

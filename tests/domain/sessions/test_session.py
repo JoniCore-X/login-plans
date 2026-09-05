@@ -3,6 +3,7 @@ from uuid import UUID
 
 from app.domain.sessions.entities import Session
 from app.domain.sessions.enums import SessionStatus
+from app.domain.sessions.value_objects import SessionCredentialHash
 from app.domain.users.value_objects import UserId
 
 
@@ -11,16 +12,19 @@ def test_session_is_created_active() -> None:
     expires_at = now + timedelta(hours=24)
     session_id = UUID("00000000-0000-0000-0000-000000000001")
     user_id = UserId(UUID("00000000-0000-0000-0000-000000000002"))
+    credential_hash = SessionCredentialHash("a" * 64)
 
     session = Session.create(
         session_id=session_id,
         user_id=user_id,
+        credential_hash=credential_hash,
         now=now,
         expires_at=expires_at,
     )
 
     assert session.id.value == session_id
     assert session.user_id == user_id
+    assert session.credential_hash == credential_hash
     assert session.status == SessionStatus.ACTIVE
     assert session.created_at == now
     assert session.expires_at == expires_at
@@ -35,6 +39,7 @@ def test_session_is_not_active_after_expiry() -> None:
     session = Session.create(
         session_id=UUID("00000000-0000-0000-0000-000000000001"),
         user_id=UserId(UUID("00000000-0000-0000-0000-000000000002")),
+        credential_hash=SessionCredentialHash("a" * 64),
         now=now,
         expires_at=expires_at,
     )
@@ -50,6 +55,7 @@ def test_revoked_session_is_not_active() -> None:
     session = Session.create(
         session_id=UUID("00000000-0000-0000-0000-000000000001"),
         user_id=UserId(UUID("00000000-0000-0000-0000-000000000002")),
+        credential_hash=SessionCredentialHash("a" * 64),
         now=now,
         expires_at=expires_at,
     )

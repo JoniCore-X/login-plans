@@ -1,6 +1,9 @@
 import pytest
 
 from app.application.ports.password_hasher import PasswordHasher
+from app.application.ports.session_credentials import (
+    SessionCredentialGenerator,
+)
 from app.application.ports.unit_of_work import UnitOfWork
 from app.application.sessions.ports import SessionRepository
 from app.application.users.commands import LoginUserCommand
@@ -11,7 +14,11 @@ from app.application.users.exceptions import (
 from app.application.users.ports import UserRepository
 from app.application.users.services import LoginUserService
 from app.domain.sessions.entities import Session
-from app.domain.sessions.value_objects import SessionId
+from app.domain.sessions.value_objects import (
+    SessionCredential,
+    SessionCredentialHash,
+    SessionId,
+)
 from app.domain.users.entities import User
 from app.domain.users.enums import UserStatus
 from app.domain.users.value_objects import (
@@ -149,15 +156,37 @@ class FakePasswordHasher(PasswordHasher):
         return self._needs_rehash
 
 
+class FakeSessionCredentialGenerator(SessionCredentialGenerator):
+    def generate(self) -> SessionCredential:
+        return SessionCredential("test-credential")
+
+    def hash(
+        self,
+        credential: SessionCredential,
+    ) -> SessionCredentialHash:
+        return SessionCredentialHash(
+            f"hash:{credential.value}",
+        )
+
+    def verify(
+        self,
+        credential: SessionCredential,
+        credential_hash: SessionCredentialHash,
+    ) -> bool:
+        return credential_hash.value == (f"hash:{credential.value}")
+
+
 def login_user_service(
     unit_of_work_factory: FakeUnitOfWorkFactory,
     password_hasher: FakePasswordHasher,
     clock: FixedClock,
+    credential_generator: FakeSessionCredentialGenerator | None = None,
 ) -> LoginUserService:
     return LoginUserService(
         unit_of_work_factory=unit_of_work_factory,
         password_hasher=password_hasher,
         clock=clock,
+        credential_generator=credential_generator or FakeSessionCredentialGenerator(),
     )
 
 
@@ -188,6 +217,7 @@ async def test_login_user_creates_session() -> None:
     )
 
     assert result.user_id == user.id.value
+    assert result.credential == "test-credential"
     assert result.expires_at > clock.current
     assert unit_of_work_factory.unit_of_work.committed is True
     assert len(unit_of_work_factory.unit_of_work.sessions.sessions) == 1
@@ -196,6 +226,8 @@ async def test_login_user_creates_session() -> None:
 
     assert session.id.value == result.session_id
     assert session.user_id == user.id
+    assert session.credential_hash.value == "hash:test-credential"
+    assert session.credential_hash.value != result.credential
 
 
 @pytest.mark.asyncio
