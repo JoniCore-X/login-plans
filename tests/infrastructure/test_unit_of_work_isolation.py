@@ -1,6 +1,7 @@
 import pytest
 
 from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
+from app.domain.users.value_objects import Email
 from tests.factories import user_factory
 
 
@@ -24,7 +25,7 @@ async def test_uow_previous_test_data_does_not_exist(
 ) -> None:
     async with test_uow_factory.create() as uow:
         stored_user = await uow.users.get_by_email(
-            "uow-isolation@example.com",
+            Email("uow-isolation@example.com"),
         )
 
         assert stored_user is None

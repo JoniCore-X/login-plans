@@ -31,6 +31,15 @@ class Email:
 
 
 @dataclass(frozen=True, slots=True)
+class PlainPassword:
+    value: str
+
+    def __post_init__(self) -> None:
+        if not self.value:
+            raise ValueError("Password cannot be empty.")
+
+
+@dataclass(frozen=True, slots=True)
 class PasswordHash:
     value: str
 

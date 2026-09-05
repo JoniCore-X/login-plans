@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.repositories.unit_of_work import UnitOfWork
+from app.application.ports.unit_of_work import UnitOfWork
 from app.infrastructure.persistence.repositories.user import (
     PostgresUserRepository,
 )

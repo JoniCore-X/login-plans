@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 
-from app.application.commands.register_user import (
+from app.application.users.commands import (
     RegisterUserCommand,
 )
-from app.domain.entities.user import User
-from app.domain.value_objects.email import Email
-from app.domain.value_objects.password import PlainPassword
+from app.domain.users.entities import User
+from app.domain.users.value_objects import (
+    Email,
+    PlainPassword,
+)
 from tests.factories.commands import register_user_command_factory
 
 

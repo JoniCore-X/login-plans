@@ -6,8 +6,7 @@ from argon2.exceptions import (
 )
 
 from app.application.ports.password_hasher import PasswordHasher
-from app.domain.value_objects.password import PlainPassword
-from app.domain.value_objects.password_hash import PasswordHash
+from app.domain.users.value_objects import PasswordHash, PlainPassword
 
 
 class Argon2PasswordHasher(PasswordHasher):

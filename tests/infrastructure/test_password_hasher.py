@@ -1,4 +1,4 @@
-from app.domain.value_objects.password import PlainPassword
+from app.domain.users.value_objects import PlainPassword
 from app.infrastructure.security.password_hasher import (
     Argon2PasswordHasher,
 )

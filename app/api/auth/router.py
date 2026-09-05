@@ -7,8 +7,8 @@ from app.api.auth.schemas import (
     UserResponse,
 )
 from app.api.dependencies import get_register_user_service
-from app.application.commands.register_user import RegisterUserCommand
-from app.application.services.register_user import RegisterUserService
+from app.application.users.commands import RegisterUserCommand
+from app.application.users.services import RegisterUserService
 
 router = APIRouter(
     prefix="/auth",
@@ -38,6 +38,7 @@ async def register(
     return UserResponse(
         id=user.id,
         email=user.email,
+        status=user.status,
         created_at=user.created_at,
         updated_at=user.updated_at,
     )

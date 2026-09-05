@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
-from app.domain.value_objects.password import PlainPassword
-from app.domain.value_objects.password_hash import PasswordHash
+from app.domain.users.value_objects import PasswordHash, PlainPassword
 
 
 class PasswordHasher(ABC):

@@ -16,11 +16,11 @@ from app.bootstrap.container import ApplicationContainer
 from app.core.config import Settings
 from app.core.logging import configure_logging
 from app.domain.exceptions.base import DomainError
-from app.domain.exceptions.user import (
-    InvalidEmailError,
+from app.domain.users.exceptions import (
     UserAlreadyExistsError,
     UserNotFoundError,
 )
+from app.domain.users.value_objects import InvalidEmailError
 from app.infrastructure.security import Argon2PasswordHasher
 
 logger = logging.getLogger(__name__)

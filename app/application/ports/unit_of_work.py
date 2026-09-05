@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from app.domain.repositories.user_repository import UserRepository
+from app.application.users.ports import UserRepository
 
 
 class UnitOfWork(ABC):

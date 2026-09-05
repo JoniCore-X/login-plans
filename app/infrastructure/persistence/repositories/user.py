@@ -1,10 +1,9 @@
-from uuid import UUID
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.entities.user import User
-from app.domain.repositories.user_repository import UserRepository
+from app.application.users.ports import UserRepository
+from app.domain.users.entities import User
+from app.domain.users.value_objects import Email, UserId
 from app.infrastructure.persistence.mappers.user import (
     user_to_domain,
     user_to_model,
@@ -23,10 +22,10 @@ class PostgresUserRepository(UserRepository):
 
     async def get_by_id(
         self,
-        user_id: UUID,
+        user_id: UserId,
     ) -> User | None:
         statement = select(UserModel).where(
-            UserModel.id == user_id,
+            UserModel.id == user_id.value,
         )
 
         result = await self.session.execute(statement)
@@ -40,10 +39,10 @@ class PostgresUserRepository(UserRepository):
 
     async def get_by_email(
         self,
-        email: str,
+        email: Email,
     ) -> User | None:
         statement = select(UserModel).where(
-            UserModel.email == email,
+            UserModel.email == email.value,
         )
 
         result = await self.session.execute(statement)
@@ -54,15 +53,3 @@ class PostgresUserRepository(UserRepository):
             return None
 
         return user_to_domain(model)
-
-    async def exists_by_email(
-        self,
-        email: str,
-    ) -> bool:
-        statement = select(UserModel.id).where(
-            UserModel.email == email,
-        )
-
-        result = await self.session.execute(statement)
-
-        return result.scalar_one_or_none() is not None

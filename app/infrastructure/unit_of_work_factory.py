@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.application.ports.unit_of_work import UnitOfWork
 from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
-from app.domain.repositories.unit_of_work import UnitOfWork
 from app.infrastructure.unit_of_work import SqlAlchemyUnitOfWork
 
 

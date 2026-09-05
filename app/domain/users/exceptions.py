@@ -1,4 +1,7 @@
-class UserDomainError(Exception):
+from app.domain.exceptions.base import DomainError
+
+
+class UserDomainError(DomainError):
     """Base exception for user domain errors."""
 
 
@@ -12,3 +15,11 @@ class InactiveUserError(UserDomainError):
 
 class SuspendedUserError(UserDomainError):
     """Raised when a suspended user performs a forbidden operation."""
+
+
+class UserAlreadyExistsError(UserDomainError):
+    """Raised when a user already exists."""
+
+
+class UserNotFoundError(UserDomainError):
+    """Raised when a user cannot be found."""

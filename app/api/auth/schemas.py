@@ -20,5 +20,6 @@ class UserResponse(BaseModel):
 
     id: UUID
     email: str
+    status: str
     created_at: datetime
     updated_at: datetime

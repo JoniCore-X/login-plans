@@ -1,4 +1,4 @@
-from app.application.commands.register_user import (
+from app.application.users.commands import (
     RegisterUserCommand,
 )
 

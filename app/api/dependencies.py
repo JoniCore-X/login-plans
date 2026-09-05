@@ -3,8 +3,10 @@ from typing import cast
 
 from fastapi import Request
 
-from app.application.services.get_user import GetUserService
-from app.application.services.register_user import RegisterUserService
+from app.application.users.services import (
+    GetUserService,
+    RegisterUserService,
+)
 from app.bootstrap.container import ApplicationContainer
 from app.core.config import Settings, get_settings
 

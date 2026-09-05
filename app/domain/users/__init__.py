@@ -4,12 +4,15 @@ from app.domain.users.exceptions import (
     InactiveUserError,
     InvalidUserStateTransition,
     SuspendedUserError,
+    UserAlreadyExistsError,
     UserDomainError,
+    UserNotFoundError,
 )
 from app.domain.users.value_objects import (
     Email,
     InvalidEmailError,
     PasswordHash,
+    PlainPassword,
     UserId,
 )
 
@@ -19,9 +22,12 @@ __all__ = [
     "InvalidEmailError",
     "InvalidUserStateTransition",
     "PasswordHash",
+    "PlainPassword",
     "SuspendedUserError",
     "User",
+    "UserAlreadyExistsError",
     "UserDomainError",
     "UserId",
+    "UserNotFoundError",
     "UserStatus",
 ]

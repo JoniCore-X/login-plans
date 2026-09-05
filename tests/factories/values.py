@@ -1,8 +1,10 @@
 from uuid import uuid4
 
-from app.domain.value_objects.email import Email
-from app.domain.value_objects.password import PlainPassword
-from app.domain.value_objects.password_hash import PasswordHash
+from app.domain.users.value_objects import (
+    Email,
+    PasswordHash,
+    PlainPassword,
+)
 
 
 def email_factory(

@@ -3,14 +3,18 @@ from uuid import UUID
 import pytest
 
 from app.application.ports.password_hasher import PasswordHasher
-from app.application.services.register_user import RegisterUserService
-from app.domain.entities.user import User
-from app.domain.exceptions.user import UserAlreadyExistsError
-from app.domain.repositories.unit_of_work import UnitOfWork
-from app.domain.repositories.user_repository import UserRepository
-from app.domain.value_objects.password import PlainPassword
-from app.domain.value_objects.password_hash import PasswordHash
-from tests.factories import registration_scenario_factory
+from app.application.ports.unit_of_work import UnitOfWork
+from app.application.users.ports import UserRepository
+from app.application.users.services import RegisterUserService
+from app.domain.users.entities import User
+from app.domain.users.exceptions import UserAlreadyExistsError
+from app.domain.users.value_objects import (
+    Email,
+    PasswordHash,
+    PlainPassword,
+    UserId,
+)
+from tests.factories import FixedClock, registration_scenario_factory
 
 
 class FakeUserRepository(UserRepository):
@@ -22,7 +26,7 @@ class FakeUserRepository(UserRepository):
 
     async def get_by_id(
         self,
-        user_id: UUID,
+        user_id: UserId,
     ) -> User | None:
         for user in self.users:
             if user.id == user_id:
@@ -32,19 +36,13 @@ class FakeUserRepository(UserRepository):
 
     async def get_by_email(
         self,
-        email: str,
+        email: Email,
     ) -> User | None:
         for user in self.users:
-            if user.email.value == email:
+            if user.email == email:
                 return user
 
         return None
-
-    async def exists_by_email(
-        self,
-        email: str,
-    ) -> bool:
-        return any(user.email.value == email for user in self.users)
 
 
 class FakeUnitOfWork(UnitOfWork):
@@ -103,10 +101,12 @@ class FakePasswordHasher(PasswordHasher):
 async def test_register_user() -> None:
     unit_of_work_factory = FakeUnitOfWorkFactory()
     password_hasher = FakePasswordHasher()
+    clock = FixedClock()
 
     service = RegisterUserService(
         unit_of_work_factory=unit_of_work_factory,
         password_hasher=password_hasher,
+        clock=clock,
     )
 
     scenario = registration_scenario_factory(
@@ -125,8 +125,10 @@ async def test_register_user() -> None:
 
     created_user = unit_of_work_factory.unit_of_work.users.users[0]
 
-    assert created_user.id == result.id
+    assert created_user.id.value == result.id
     assert created_user.password_hash.value == (f"hashed:{scenario.password.value}")
+    assert created_user.created_at == clock.current
+    assert created_user.updated_at == clock.current
     assert password_hasher.hashed_password == scenario.password
 
 
@@ -138,6 +140,7 @@ async def test_register_user_rejects_duplicate_email() -> None:
     service = RegisterUserService(
         unit_of_work_factory=unit_of_work_factory,
         password_hasher=password_hasher,
+        clock=FixedClock(),
     )
 
     scenario = registration_scenario_factory(

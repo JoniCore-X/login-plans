@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from uuid import UUID
+
+from app.domain.users.value_objects import UserId
 
 
 @dataclass(frozen=True, slots=True)
 class GetUserQuery:
-    user_id: UUID
+    user_id: UserId
