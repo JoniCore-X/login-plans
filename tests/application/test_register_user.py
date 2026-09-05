@@ -170,7 +170,7 @@ async def test_register_user() -> None:
 
     scenario = registration_scenario_factory(
         email="USER@example.com",
-        password="secret",
+        password="a-strong-password-1",
     )
 
     result = await service.execute(
@@ -204,7 +204,7 @@ async def test_register_user_rejects_duplicate_email() -> None:
 
     scenario = registration_scenario_factory(
         email="user@example.com",
-        password="secret",
+        password="a-strong-password-1",
     )
 
     await service.execute(scenario.command)

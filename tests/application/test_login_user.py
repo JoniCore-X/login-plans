@@ -225,7 +225,7 @@ async def test_login_user_creates_session() -> None:
 
     user = user_factory(
         email="user@example.com",
-        password_hash="hashed:secret",
+        password_hash="hashed:valid-password-1",
     )
 
     await unit_of_work_factory.unit_of_work.users.add(user)
@@ -233,7 +233,7 @@ async def test_login_user_creates_session() -> None:
     result = await service.execute(
         LoginUserCommand(
             email="USER@example.com",
-            password="secret",
+            password="valid-password-1",
         ),
     )
 
@@ -267,7 +267,7 @@ async def test_login_rejects_unknown_email() -> None:
         await service.execute(
             LoginUserCommand(
                 email="nobody@example.com",
-                password="secret",
+                password="valid-password-1",
             ),
         )
 
@@ -286,7 +286,7 @@ async def test_login_rejects_wrong_password() -> None:
 
     user = user_factory(
         email="user@example.com",
-        password_hash="hashed:correct",
+        password_hash="hashed:correct-password-1",
     )
 
     await unit_of_work_factory.unit_of_work.users.add(user)
@@ -295,7 +295,7 @@ async def test_login_rejects_wrong_password() -> None:
         await service.execute(
             LoginUserCommand(
                 email="user@example.com",
-                password="wrong",
+                password="wrong-password-1",
             ),
         )
 
@@ -314,7 +314,7 @@ async def test_login_rejects_suspended_user() -> None:
 
     user = user_factory(
         email="user@example.com",
-        password_hash="hashed:secret",
+        password_hash="hashed:valid-password-1",
         status=UserStatus.SUSPENDED,
     )
 
@@ -324,7 +324,7 @@ async def test_login_rejects_suspended_user() -> None:
         await service.execute(
             LoginUserCommand(
                 email="user@example.com",
-                password="secret",
+                password="valid-password-1",
             ),
         )
 
@@ -345,7 +345,7 @@ async def test_login_rehashes_outdated_password_hash() -> None:
 
     user = user_factory(
         email="user@example.com",
-        password_hash="hashed:secret",
+        password_hash="hashed:valid-password-1",
     )
 
     await unit_of_work_factory.unit_of_work.users.add(user)
@@ -353,7 +353,7 @@ async def test_login_rehashes_outdated_password_hash() -> None:
     await service.execute(
         LoginUserCommand(
             email="user@example.com",
-            password="secret",
+            password="valid-password-1",
         ),
     )
 
@@ -364,4 +364,4 @@ async def test_login_rehashes_outdated_password_hash() -> None:
     assert updated_user is not None
     assert updated_user.updated_at == clock.current
     assert password_hasher.hashed_password is not None
-    assert password_hasher.hashed_password.value == "secret"
+    assert password_hasher.hashed_password.value == "valid-password-1"

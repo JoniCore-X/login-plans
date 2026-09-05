@@ -13,6 +13,7 @@ from app.api.exception_handlers import (
     user_already_exists_handler,
     user_cannot_authenticate_handler,
     user_not_found_handler,
+    weak_password_handler,
 )
 from app.api.router import router
 from app.application.auth.exceptions import (
@@ -32,7 +33,10 @@ from app.domain.users.exceptions import (
     UserAlreadyExistsError,
     UserNotFoundError,
 )
-from app.domain.users.value_objects import InvalidEmailError
+from app.domain.users.value_objects import (
+    InvalidEmailError,
+    WeakPasswordError,
+)
 from app.infrastructure.security import Argon2PasswordHasher
 
 logger = logging.getLogger(__name__)
@@ -114,6 +118,11 @@ class Application:
         application.add_exception_handler(
             RateLimitExceededError,
             rate_limit_exceeded_handler,
+        )
+
+        application.add_exception_handler(
+            WeakPasswordError,
+            weak_password_handler,
         )
 
         application.add_exception_handler(

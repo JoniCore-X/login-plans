@@ -107,6 +107,21 @@ async def rate_limit_exceeded_handler(
     )
 
 
+async def weak_password_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=400,
+        content={
+            "error": {
+                "code": "WEAK_PASSWORD",
+                "message": str(exc),
+            },
+        },
+    )
+
+
 async def domain_error_handler(
     request: Request,
     exc: Exception,

@@ -82,7 +82,7 @@ async def test_login_unknown_email_returns_generic_error(
         "/api/v1/auth/login",
         json={
             "email": "nobody@example.com",
-            "password": "whatever",
+            "password": "whatever-123!",
         },
     )
 

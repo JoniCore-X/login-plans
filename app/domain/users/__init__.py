@@ -14,6 +14,7 @@ from app.domain.users.value_objects import (
     PasswordHash,
     PlainPassword,
     UserId,
+    WeakPasswordError,
 )
 
 __all__ = [
@@ -30,4 +31,5 @@ __all__ = [
     "UserId",
     "UserNotFoundError",
     "UserStatus",
+    "WeakPasswordError",
 ]

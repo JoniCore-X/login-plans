@@ -43,7 +43,7 @@ async def test_login_rate_limit_blocks_after_limit(
                 "/api/v1/auth/login",
                 json={
                     "email": "limited@example.com",
-                    "password": "wrong",
+                    "password": "wrong-password-1",
                 },
             )
 
@@ -53,7 +53,7 @@ async def test_login_rate_limit_blocks_after_limit(
             "/api/v1/auth/login",
             json={
                 "email": "limited@example.com",
-                "password": "wrong",
+                "password": "wrong-password-1",
             },
         )
 
