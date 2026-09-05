@@ -30,15 +30,19 @@ class Application:
     def __init__(
         self,
         settings: Settings,
+        container: ApplicationContainer | None = None,
     ) -> None:
         self.settings = settings
 
-        password_hasher: PasswordHasher = Argon2PasswordHasher()
+        if container is None:
+            password_hasher: PasswordHasher = Argon2PasswordHasher()
 
-        self.container = ApplicationContainer(
-            settings=settings,
-            password_hasher=password_hasher,
-        )
+            container = ApplicationContainer(
+                settings=settings,
+                password_hasher=password_hasher,
+            )
+
+        self.container = container
 
     def create(self) -> FastAPI:
         configure_logging(

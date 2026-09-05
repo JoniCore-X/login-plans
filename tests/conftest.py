@@ -1,11 +1,19 @@
 import os
 
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+from sqlalchemy.ext.asyncio import (
+    AsyncConnection,
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+)
 
+from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
 from app.core.config import get_settings
 from app.database.engine import create_database_engine
-from tests.infrastructure.database import TestDatabase
+from app.infrastructure.unit_of_work_factory import (
+    SqlAlchemyUnitOfWorkFactory,
+)
 
 os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = (
@@ -25,27 +33,42 @@ async def test_engine() -> AsyncEngine:
 
 
 @pytest_asyncio.fixture
-async def test_database(
+async def test_connection(
     test_engine: AsyncEngine,
-) -> TestDatabase:
-    database = TestDatabase(
-        test_engine,
+) -> AsyncConnection:
+    async with test_engine.connect() as connection:
+        transaction = await connection.begin()
+
+        try:
+            yield connection
+        finally:
+            if transaction.is_active:
+                await transaction.rollback()
+
+
+@pytest_asyncio.fixture
+async def test_session_factory(
+    test_connection: AsyncConnection,
+) -> async_sessionmaker[AsyncSession]:
+    return async_sessionmaker(
+        bind=test_connection,
+        expire_on_commit=False,
+        join_transaction_mode="create_savepoint",
     )
-
-    await database.start()
-
-    yield database
-
-    await database.stop()
 
 
 @pytest_asyncio.fixture
 async def test_session(
-    test_database: TestDatabase,
+    test_session_factory: async_sessionmaker[AsyncSession],
 ) -> AsyncSession:
-    if test_database.session is None:
-        raise RuntimeError(
-            "Test database session was not initialized",
-        )
+    async with test_session_factory() as session:
+        yield session
 
-    return test_database.session
+
+@pytest_asyncio.fixture
+async def test_uow_factory(
+    test_session_factory: async_sessionmaker[AsyncSession],
+) -> UnitOfWorkFactory:
+    return SqlAlchemyUnitOfWorkFactory(
+        test_session_factory,
+    )

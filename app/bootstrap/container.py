@@ -14,14 +14,17 @@ class ApplicationContainer:
         self,
         settings: Settings,
         password_hasher: PasswordHasher,
+        unit_of_work_factory: UnitOfWorkFactory | None = None,
     ) -> None:
         self.settings = settings
         self.database = Database(settings)
 
-        self.unit_of_work_factory: UnitOfWorkFactory = SqlAlchemyUnitOfWorkFactory(
-            self.database.session_factory,
-        )
+        if unit_of_work_factory is None:
+            unit_of_work_factory = SqlAlchemyUnitOfWorkFactory(
+                self.database.session_factory,
+            )
 
+        self.unit_of_work_factory = unit_of_work_factory
         self.password_hasher = password_hasher
 
     def create_register_user_service(
@@ -32,7 +35,9 @@ class ApplicationContainer:
             password_hasher=self.password_hasher,
         )
 
-    def create_get_user_service(self) -> GetUserService:
+    def create_get_user_service(
+        self,
+    ) -> GetUserService:
         return GetUserService(
             unit_of_work_factory=self.unit_of_work_factory,
         )
@@ -41,8 +46,10 @@ class ApplicationContainer:
 def create_container(
     settings: Settings,
     password_hasher: PasswordHasher,
+    unit_of_work_factory: UnitOfWorkFactory | None = None,
 ) -> ApplicationContainer:
     return ApplicationContainer(
         settings=settings,
         password_hasher=password_hasher,
+        unit_of_work_factory=unit_of_work_factory,
     )

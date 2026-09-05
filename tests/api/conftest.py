@@ -1,29 +1,40 @@
 import httpx
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import FastAPI
 
-from app.api.dependencies import get_register_user_service
-from app.application.services.register_user import RegisterUserService
+from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
+from app.bootstrap.application import Application
+from app.bootstrap.container import ApplicationContainer
+from app.core.config import get_settings
 from app.infrastructure.security import Argon2PasswordHasher
-from app.main import app
-from tests.infrastructure.database import TestUnitOfWorkFactory
+
+
+@pytest_asyncio.fixture
+async def test_app(
+    test_uow_factory: UnitOfWorkFactory,
+) -> FastAPI:
+    settings = get_settings()
+
+    container = ApplicationContainer(
+        settings=settings,
+        password_hasher=Argon2PasswordHasher(),
+        unit_of_work_factory=test_uow_factory,
+    )
+
+    application = Application(
+        settings=settings,
+        container=container,
+    )
+
+    return application.create()
 
 
 @pytest_asyncio.fixture
 async def client(
-    test_session: AsyncSession,
+    test_app: FastAPI,
 ) -> httpx.AsyncClient:
-    service = RegisterUserService(
-        unit_of_work_factory=TestUnitOfWorkFactory(
-            test_session,
-        ),
-        password_hasher=Argon2PasswordHasher(),
-    )
-
-    app.dependency_overrides[get_register_user_service] = lambda: service
-
     transport = httpx.ASGITransport(
-        app=app,
+        app=test_app,
     )
 
     async with httpx.AsyncClient(
@@ -31,5 +42,3 @@ async def client(
         base_url="http://test",
     ) as client:
         yield client
-
-    app.dependency_overrides.clear()

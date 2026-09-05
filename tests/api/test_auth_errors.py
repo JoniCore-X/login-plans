@@ -1,12 +1,13 @@
 from uuid import uuid4
 
+import httpx
 import pytest
 
 
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_register_rejects_invalid_email(
-    client,
+    client: httpx.AsyncClient,
 ) -> None:
     response = await client.post(
         "/api/v1/auth/register",
@@ -23,7 +24,7 @@ async def test_register_rejects_invalid_email(
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_register_rejects_duplicate_email(
-    client,
+    client: httpx.AsyncClient,
 ) -> None:
     email = f"duplicate-{uuid4()}@example.com"
 
