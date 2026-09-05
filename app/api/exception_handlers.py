@@ -1,5 +1,9 @@
-from fastapi import Request
+import logging
+
+from fastapi import Request, status
 from fastapi.responses import JSONResponse
+
+logger = logging.getLogger(__name__)
 
 
 async def user_already_exists_handler(
@@ -11,7 +15,7 @@ async def user_already_exists_handler(
         content={
             "error": {
                 "code": "USER_ALREADY_EXISTS",
-                "message": str(exc),
+                "message": "Invalid credentials provided.",
             },
         },
     )
@@ -131,7 +135,28 @@ async def domain_error_handler(
         content={
             "error": {
                 "code": "DOMAIN_ERROR",
-                "message": str(exc),
+                "message": "Invalid request.",
+            },
+        },
+    )
+
+
+async def internal_error_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    logger.exception(
+        "Unhandled exception on %s %s",
+        request.method,
+        request.url.path,
+    )
+
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": "Internal server error. Please try again later.",
             },
         },
     )

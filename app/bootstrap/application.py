@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from app.api.exception_handlers import (
     authentication_error_handler,
     domain_error_handler,
+    internal_error_handler,
     invalid_credentials_handler,
     invalid_email_handler,
     rate_limit_exceeded_handler,
@@ -111,6 +112,11 @@ class Application:
         )
 
         application.add_exception_handler(
+            WeakPasswordError,
+            weak_password_handler,
+        )
+
+        application.add_exception_handler(
             AuthenticationError,
             authentication_error_handler,
         )
@@ -121,13 +127,13 @@ class Application:
         )
 
         application.add_exception_handler(
-            WeakPasswordError,
-            weak_password_handler,
+            DomainError,
+            domain_error_handler,
         )
 
         application.add_exception_handler(
-            DomainError,
-            domain_error_handler,
+            Exception,
+            internal_error_handler,
         )
 
         application.include_router(router)
