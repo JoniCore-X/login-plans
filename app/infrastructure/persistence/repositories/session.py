@@ -3,7 +3,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.sessions.ports import SessionRepository
 from app.domain.sessions.entities import Session
-from app.domain.sessions.value_objects import SessionId
+from app.domain.sessions.value_objects import (
+    SessionCredentialHash,
+    SessionId,
+)
 from app.domain.users.value_objects import UserId
 from app.infrastructure.persistence.mappers.session import (
     session_to_domain,
@@ -26,6 +29,23 @@ class PostgresSessionRepository(SessionRepository):
         result = await self.session.execute(
             select(SessionModel).where(
                 SessionModel.id == session_id.value,
+            ),
+        )
+
+        model = result.scalar_one_or_none()
+
+        if model is None:
+            return None
+
+        return session_to_domain(model)
+
+    async def get_by_credential_hash(
+        self,
+        credential_hash: SessionCredentialHash,
+    ) -> Session | None:
+        result = await self.session.execute(
+            select(SessionModel).where(
+                SessionModel.credential_hash == credential_hash.value,
             ),
         )
 

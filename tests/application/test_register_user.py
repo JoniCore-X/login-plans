@@ -8,7 +8,10 @@ from app.application.sessions.ports import SessionRepository
 from app.application.users.ports import UserRepository
 from app.application.users.services import RegisterUserService
 from app.domain.sessions.entities import Session
-from app.domain.sessions.value_objects import SessionId
+from app.domain.sessions.value_objects import (
+    SessionCredentialHash,
+    SessionId,
+)
 from app.domain.users.entities import User
 from app.domain.users.exceptions import UserAlreadyExistsError
 from app.domain.users.value_objects import (
@@ -67,6 +70,16 @@ class FakeSessionRepository(SessionRepository):
         user_id: UserId,
     ) -> list[Session]:
         return [session for session in self.sessions if session.user_id == user_id]
+
+    async def get_by_credential_hash(
+        self,
+        credential_hash: SessionCredentialHash,
+    ) -> Session | None:
+        for session in self.sessions:
+            if session.credential_hash == credential_hash:
+                return session
+
+        return None
 
     async def add(self, session: Session) -> None:
         self.sessions.append(session)

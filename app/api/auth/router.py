@@ -2,9 +2,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
+from app.api.auth.dependencies import get_authenticated_user
 from app.api.auth.schemas import (
     LoginRequest,
     LoginResponse,
+    MeResponse,
     RegisterRequest,
     UserResponse,
 )
@@ -12,6 +14,7 @@ from app.api.dependencies import (
     get_login_user_service,
     get_register_user_service,
 )
+from app.application.auth.dto import AuthenticatedUser
 from app.application.users.commands import (
     LoginUserCommand,
     RegisterUserCommand,
@@ -79,4 +82,21 @@ async def login(
         session_id=result.session_id,
         credential=result.credential,
         expires_at=result.expires_at,
+    )
+
+
+@router.get(
+    "/me",
+    response_model=MeResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def me(
+    authenticated_user: Annotated[
+        AuthenticatedUser,
+        Depends(get_authenticated_user),
+    ],
+) -> MeResponse:
+    return MeResponse(
+        user_id=authenticated_user.user_id,
+        session_id=authenticated_user.session_id,
     )

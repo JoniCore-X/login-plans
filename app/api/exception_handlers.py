@@ -77,6 +77,21 @@ async def user_cannot_authenticate_handler(
     )
 
 
+async def authentication_error_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=401,
+        content={
+            "error": {
+                "code": "AUTHENTICATION_FAILED",
+                "message": "Authentication failed.",
+            },
+        },
+    )
+
+
 async def domain_error_handler(
     request: Request,
     exc: Exception,

@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.exception_handlers import (
+    authentication_error_handler,
     domain_error_handler,
     invalid_credentials_handler,
     invalid_email_handler,
@@ -13,6 +14,7 @@ from app.api.exception_handlers import (
     user_not_found_handler,
 )
 from app.api.router import router
+from app.application.auth.exceptions import AuthenticationError
 from app.application.ports.password_hasher import PasswordHasher
 from app.application.users.exceptions import (
     InvalidCredentialsError,
@@ -98,6 +100,11 @@ class Application:
         application.add_exception_handler(
             UserCannotAuthenticateError,
             user_cannot_authenticate_handler,
+        )
+
+        application.add_exception_handler(
+            AuthenticationError,
+            authentication_error_handler,
         )
 
         application.add_exception_handler(

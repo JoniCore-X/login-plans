@@ -86,6 +86,16 @@ class FakeSessionRepository(SessionRepository):
     ) -> list[Session]:
         return [session for session in self.sessions if session.user_id == user_id]
 
+    async def get_by_credential_hash(
+        self,
+        credential_hash: SessionCredentialHash,
+    ) -> Session | None:
+        for session in self.sessions:
+            if session.credential_hash == credential_hash:
+                return session
+
+        return None
+
     async def add(self, session: Session) -> None:
         self.sessions.append(session)
 

@@ -3,6 +3,7 @@ from typing import cast
 
 from fastapi import Request
 
+from app.application.auth.services import AuthenticationService
 from app.application.users.services import (
     GetUserService,
     LoginUserService,
@@ -37,6 +38,14 @@ def get_login_user_service(
     container = get_application_container(request)
 
     return container.create_login_user_service()
+
+
+def get_authentication_service(
+    request: Request,
+) -> AuthenticationService:
+    container = get_application_container(request)
+
+    return container.create_authentication_service()
 
 
 def get_get_user_service(

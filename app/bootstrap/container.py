@@ -1,3 +1,4 @@
+from app.application.auth.services import AuthenticationService
 from app.application.ports.clock import Clock
 from app.application.ports.password_hasher import PasswordHasher
 from app.application.ports.session_credentials import (
@@ -65,6 +66,15 @@ class ApplicationContainer:
             password_hasher=self.password_hasher,
             clock=self.clock,
             credential_generator=self.credential_generator,
+        )
+
+    def create_authentication_service(
+        self,
+    ) -> AuthenticationService:
+        return AuthenticationService(
+            unit_of_work_factory=self.unit_of_work_factory,
+            credential_generator=self.credential_generator,
+            clock=self.clock,
         )
 
     def create_get_user_service(

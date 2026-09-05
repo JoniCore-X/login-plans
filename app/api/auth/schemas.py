@@ -33,6 +33,15 @@ class LoginResponse(BaseModel):
     expires_at: datetime
 
 
+class MeResponse(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    user_id: UUID
+    session_id: UUID
+
+
 class UserResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,

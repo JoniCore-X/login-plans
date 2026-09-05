@@ -49,6 +49,50 @@ async def test_session_repository_can_persist_session(
 
 @pytest.mark.integration
 @pytest.mark.asyncio
+async def test_session_repository_finds_session_by_credential_hash(
+    test_session: AsyncSession,
+) -> None:
+    from app.domain.sessions.value_objects import SessionCredentialHash
+
+    user_repository = PostgresUserRepository(
+        test_session,
+    )
+    session_repository = PostgresSessionRepository(
+        test_session,
+    )
+
+    user = user_factory()
+
+    await user_repository.add(user)
+
+    await test_session.flush()
+
+    session = session_factory(
+        user_id=user.id.value,
+    )
+
+    await session_repository.add(session)
+
+    await test_session.flush()
+
+    found = await session_repository.get_by_credential_hash(
+        SessionCredentialHash(
+            session.credential_hash.value,
+        ),
+    )
+
+    assert found is not None
+    assert found.id == session.id
+
+    missing = await session_repository.get_by_credential_hash(
+        SessionCredentialHash("0" * 64),
+    )
+
+    assert missing is None
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
 async def test_session_repository_can_revoke_session(
     test_session: AsyncSession,
 ) -> None:
