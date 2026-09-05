@@ -13,6 +13,7 @@ def session_to_model(session: Session) -> SessionModel:
         id=session.id.value,
         user_id=session.user_id.value,
         credential_hash=session.credential_hash.value,
+        family_id=session.family_id,
         status=session.status.value,
         created_at=session.created_at,
         expires_at=session.expires_at,
@@ -27,6 +28,7 @@ def session_to_domain(model: SessionModel) -> Session:
         credential_hash=SessionCredentialHash(
             model.credential_hash,
         ),
+        family_id=model.family_id,
         status=SessionStatus(model.status),
         created_at=model.created_at,
         expires_at=model.expires_at,

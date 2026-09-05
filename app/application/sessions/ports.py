@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 from app.domain.sessions.entities import Session
 from app.domain.sessions.value_objects import (
@@ -31,7 +32,21 @@ class SessionRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def get_by_family_id(
+        self,
+        family_id: UUID,
+    ) -> list[Session]:
+        raise NotImplementedError
+
+    @abstractmethod
     async def add(
+        self,
+        session: Session,
+    ) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def update(
         self,
         session: Session,
     ) -> None:

@@ -4,7 +4,7 @@ from uuid import UUID
 import pytest
 
 from app.application.auth.exceptions import AuthenticationError
-from app.application.auth.services import LogoutService
+from app.application.auth.services import RotateSessionService
 from app.application.ports.session_credentials import (
     SessionCredentialGenerator,
 )
@@ -85,7 +85,10 @@ class FakeSessionRepository(SessionRepository):
         self.sessions.append(session)
 
     async def update(self, session: Session) -> None:
-        return None
+        for index, existing in enumerate(self.sessions):
+            if existing.id == session.id:
+                self.sessions[index] = session
+                return
 
     async def revoke(self, session: Session) -> None:
         return None
@@ -123,8 +126,14 @@ class FakeUnitOfWorkFactory:
 
 
 class FakeSessionCredentialGenerator(SessionCredentialGenerator):
+    def __init__(self) -> None:
+        self.counter = 0
+
     def generate(self) -> SessionCredential:
-        return SessionCredential("generated-credential")
+        self.counter += 1
+        return SessionCredential(
+            f"credential-{self.counter}",
+        )
 
     def hash(
         self,
@@ -142,41 +151,102 @@ class FakeSessionCredentialGenerator(SessionCredentialGenerator):
         return credential_hash.value == (f"hash:{credential.value}")
 
 
+def rotate_service(
+    uow_factory: FakeUnitOfWorkFactory,
+    credential_generator: FakeSessionCredentialGenerator,
+    clock: FixedClock,
+) -> RotateSessionService:
+    return RotateSessionService(
+        unit_of_work_factory=uow_factory,
+        credential_generator=credential_generator,
+        clock=clock,
+    )
+
+
 @pytest.mark.asyncio
-async def test_logout_revokes_session() -> None:
+async def test_rotation_creates_new_session_in_same_family() -> None:
     uow_factory = FakeUnitOfWorkFactory()
+    credential_generator = FakeSessionCredentialGenerator()
     clock = FixedClock()
 
-    service = LogoutService(
-        unit_of_work_factory=uow_factory,
-        credential_generator=FakeSessionCredentialGenerator(),
-        clock=clock,
+    service = rotate_service(
+        uow_factory,
+        credential_generator,
+        clock,
     )
 
     user = user_factory()
     await uow_factory.unit_of_work.users.add(user)
 
-    session = session_factory(
+    original = session_factory(
         user_id=user.id.value,
-        credential_hash="hash:my-credential",
+        credential_hash="hash:old-credential",
         created_at=clock.current,
-        expires_at=clock.current + timedelta(hours=1),
+        expires_at=clock.current + timedelta(hours=24),
     )
-    uow_factory.unit_of_work.sessions.sessions.append(session)
+    uow_factory.unit_of_work.sessions.sessions.append(original)
 
-    await service.execute("my-credential")
+    result = await service.execute("old-credential")
 
-    assert session.status == SessionStatus.REVOKED
-    assert session.revoked_at == clock.current
+    assert result.credential == "credential-1"
+    assert result.user_id == user.id.value
+    assert result.session_id != original.id.value
+
+    assert original.status == SessionStatus.ROTATED
+    assert original.revoked_at == clock.current
+
+    sessions = uow_factory.unit_of_work.sessions.sessions
+
+    assert len(sessions) == 2
+
+    new_session = sessions[1]
+
+    assert new_session.family_id == original.family_id
+    assert new_session.status == SessionStatus.ACTIVE
+    assert new_session.expires_at == original.expires_at
+    assert new_session.credential_hash.value == "hash:credential-1"
     assert uow_factory.unit_of_work.committed is True
 
 
 @pytest.mark.asyncio
-async def test_logout_unknown_credential_fails() -> None:
-    service = LogoutService(
-        unit_of_work_factory=FakeUnitOfWorkFactory(),
-        credential_generator=FakeSessionCredentialGenerator(),
-        clock=FixedClock(),
+async def test_rotation_replay_revokes_entire_family() -> None:
+    uow_factory = FakeUnitOfWorkFactory()
+    credential_generator = FakeSessionCredentialGenerator()
+    clock = FixedClock()
+
+    service = rotate_service(
+        uow_factory,
+        credential_generator,
+        clock,
+    )
+
+    user = user_factory()
+    await uow_factory.unit_of_work.users.add(user)
+
+    original = session_factory(
+        user_id=user.id.value,
+        credential_hash="hash:old-credential",
+        created_at=clock.current,
+        expires_at=clock.current + timedelta(hours=24),
+    )
+    uow_factory.unit_of_work.sessions.sessions.append(original)
+
+    await service.execute("old-credential")
+
+    with pytest.raises(AuthenticationError):
+        await service.execute("old-credential")
+
+    sessions = uow_factory.unit_of_work.sessions.sessions
+
+    assert all(session.status == SessionStatus.REVOKED for session in sessions)
+
+
+@pytest.mark.asyncio
+async def test_rotation_with_unknown_credential_fails() -> None:
+    service = rotate_service(
+        FakeUnitOfWorkFactory(),
+        FakeSessionCredentialGenerator(),
+        FixedClock(),
     )
 
     with pytest.raises(AuthenticationError):
@@ -184,45 +254,27 @@ async def test_logout_unknown_credential_fails() -> None:
 
 
 @pytest.mark.asyncio
-async def test_logout_already_revoked_session_fails() -> None:
+async def test_rotation_expired_session_fails() -> None:
     uow_factory = FakeUnitOfWorkFactory()
+    credential_generator = FakeSessionCredentialGenerator()
     clock = FixedClock()
 
-    service = LogoutService(
-        unit_of_work_factory=uow_factory,
-        credential_generator=FakeSessionCredentialGenerator(),
-        clock=clock,
+    service = rotate_service(
+        uow_factory,
+        credential_generator,
+        clock,
     )
 
-    session = session_factory(
-        credential_hash="hash:my-credential",
-        status=SessionStatus.REVOKED,
-        created_at=clock.current,
-        expires_at=clock.current + timedelta(hours=1),
-    )
-    uow_factory.unit_of_work.sessions.sessions.append(session)
+    user = user_factory()
+    await uow_factory.unit_of_work.users.add(user)
 
-    with pytest.raises(AuthenticationError):
-        await service.execute("my-credential")
-
-
-@pytest.mark.asyncio
-async def test_logout_expired_session_fails() -> None:
-    uow_factory = FakeUnitOfWorkFactory()
-    clock = FixedClock()
-
-    service = LogoutService(
-        unit_of_work_factory=uow_factory,
-        credential_generator=FakeSessionCredentialGenerator(),
-        clock=clock,
-    )
-
-    session = session_factory(
-        credential_hash="hash:my-credential",
+    expired = session_factory(
+        user_id=user.id.value,
+        credential_hash="hash:old-credential",
         created_at=clock.current - timedelta(hours=2),
         expires_at=clock.current - timedelta(hours=1),
     )
-    uow_factory.unit_of_work.sessions.sessions.append(session)
+    uow_factory.unit_of_work.sessions.sessions.append(expired)
 
     with pytest.raises(AuthenticationError):
-        await service.execute("my-credential")
+        await service.execute("old-credential")

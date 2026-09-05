@@ -6,6 +6,7 @@ from app.application.auth.exceptions import (
 from app.application.auth.services import (
     AuthenticationService,
     LogoutService,
+    RotateSessionService,
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "AuthenticationService",
     "LogoutService",
     "RateLimitExceededError",
+    "RotateSessionService",
 ]

@@ -20,6 +20,11 @@ class SessionModel(Base):
         index=True,
     )
 
+    family_id: Mapped[UUID] = mapped_column(
+        nullable=False,
+        index=True,
+    )
+
     credential_hash: Mapped[str] = mapped_column(
         String(64),
         nullable=False,

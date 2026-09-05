@@ -1,4 +1,4 @@
-from uuid import UUID
+from uuid import UUID  # noqa: F401 — used in repository signatures
 
 import pytest
 
@@ -81,8 +81,17 @@ class FakeSessionRepository(SessionRepository):
 
         return None
 
+    async def get_by_family_id(
+        self,
+        family_id: UUID,
+    ) -> list[Session]:
+        return [session for session in self.sessions if session.family_id == family_id]
+
     async def add(self, session: Session) -> None:
         self.sessions.append(session)
+
+    async def update(self, session: Session) -> None:
+        return None
 
     async def revoke(self, session: Session) -> None:
         return None

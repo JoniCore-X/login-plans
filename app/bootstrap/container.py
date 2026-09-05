@@ -3,6 +3,7 @@ from datetime import timedelta
 from app.application.auth.services import (
     AuthenticationService,
     LogoutService,
+    RotateSessionService,
 )
 from app.application.ports.clock import Clock
 from app.application.ports.password_hasher import PasswordHasher
@@ -93,6 +94,15 @@ class ApplicationContainer:
         self,
     ) -> LogoutService:
         return LogoutService(
+            unit_of_work_factory=self.unit_of_work_factory,
+            credential_generator=self.credential_generator,
+            clock=self.clock,
+        )
+
+    def create_rotate_session_service(
+        self,
+    ) -> RotateSessionService:
+        return RotateSessionService(
             unit_of_work_factory=self.unit_of_work_factory,
             credential_generator=self.credential_generator,
             clock=self.clock,

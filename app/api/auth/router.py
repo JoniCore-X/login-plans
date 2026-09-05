@@ -18,9 +18,13 @@ from app.api.dependencies import (
     get_login_user_service,
     get_logout_service,
     get_register_user_service,
+    get_rotate_session_service,
 )
 from app.application.auth.dto import AuthenticatedUser
-from app.application.auth.services import LogoutService
+from app.application.auth.services import (
+    LogoutService,
+    RotateSessionService,
+)
 from app.application.users.commands import (
     LoginUserCommand,
     RegisterUserCommand,
@@ -125,4 +129,31 @@ async def logout(
 ) -> None:
     await service.execute(
         credential,
+    )
+
+
+@router.post(
+    "/rotate",
+    response_model=LoginResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def rotate(
+    credential: Annotated[
+        str,
+        Depends(get_bearer_credential),
+    ],
+    service: Annotated[
+        RotateSessionService,
+        Depends(get_rotate_session_service),
+    ],
+) -> LoginResponse:
+    result = await service.execute(
+        credential,
+    )
+
+    return LoginResponse(
+        user_id=result.user_id,
+        session_id=result.session_id,
+        credential=result.credential,
+        expires_at=result.expires_at,
     )

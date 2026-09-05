@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -68,6 +70,18 @@ class PostgresSessionRepository(SessionRepository):
 
         return [session_to_domain(model) for model in result.scalars().all()]
 
+    async def get_by_family_id(
+        self,
+        family_id: UUID,
+    ) -> list[Session]:
+        result = await self.session.execute(
+            select(SessionModel)
+            .where(SessionModel.family_id == family_id)
+            .order_by(SessionModel.created_at.desc()),
+        )
+
+        return [session_to_domain(model) for model in result.scalars().all()]
+
     async def add(
         self,
         session: Session,
@@ -75,6 +89,22 @@ class PostgresSessionRepository(SessionRepository):
         self.session.add(
             session_to_model(session),
         )
+
+    async def update(
+        self,
+        session: Session,
+    ) -> None:
+        model = await self.session.get(
+            SessionModel,
+            session.id.value,
+        )
+
+        if model is None:
+            return
+
+        model.status = session.status.value
+        model.credential_hash = session.credential_hash.value
+        model.revoked_at = session.revoked_at
 
     async def revoke(
         self,

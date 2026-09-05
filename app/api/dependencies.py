@@ -6,6 +6,7 @@ from fastapi import Request
 from app.application.auth.services import (
     AuthenticationService,
     LogoutService,
+    RotateSessionService,
 )
 from app.application.users.services import (
     GetUserService,
@@ -57,6 +58,14 @@ def get_logout_service(
     container = get_application_container(request)
 
     return container.create_logout_service()
+
+
+def get_rotate_session_service(
+    request: Request,
+) -> RotateSessionService:
+    container = get_application_container(request)
+
+    return container.create_rotate_session_service()
 
 
 def get_get_user_service(
