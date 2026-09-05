@@ -23,6 +23,7 @@ dependencies = [
 dev = [
     "pytest",
     "pytest-asyncio",
+    "pytest-cov",
     "ruff",
     "mypy",
 ]
@@ -33,6 +34,19 @@ asyncio_mode = "auto"
 markers = [
     "integration: tests that require external infrastructure",
 ]
+
+[tool.coverage.run]
+source = ["app"]
+branch = true
+omit = [
+    "app/database/migrations/*",
+    "app/main.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+fail_under = 80
 
 [tool.ruff]
 line-length = 88
