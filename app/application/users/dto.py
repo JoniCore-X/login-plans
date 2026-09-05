@@ -12,3 +12,10 @@ class UserDTO:
     status: UserStatus
     created_at: datetime
     updated_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class AuthenticationDTO:
+    user_id: UUID
+    session_id: UUID
+    expires_at: datetime

@@ -16,3 +16,9 @@ class PasswordHasher(ABC):
         password: PlainPassword,
         password_hash: PasswordHash,
     ) -> bool: ...
+
+    @abstractmethod
+    def needs_rehash(
+        self,
+        password_hash: PasswordHash,
+    ) -> bool: ...

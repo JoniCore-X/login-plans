@@ -4,8 +4,11 @@ import pytest
 
 from app.application.ports.password_hasher import PasswordHasher
 from app.application.ports.unit_of_work import UnitOfWork
+from app.application.sessions.ports import SessionRepository
 from app.application.users.ports import UserRepository
 from app.application.users.services import RegisterUserService
+from app.domain.sessions.entities import Session
+from app.domain.sessions.value_objects import SessionId
 from app.domain.users.entities import User
 from app.domain.users.exceptions import UserAlreadyExistsError
 from app.domain.users.value_objects import (
@@ -45,9 +48,37 @@ class FakeUserRepository(UserRepository):
         return None
 
 
+class FakeSessionRepository(SessionRepository):
+    def __init__(self) -> None:
+        self.sessions: list[Session] = []
+
+    async def get_by_id(
+        self,
+        session_id: SessionId,
+    ) -> Session | None:
+        for session in self.sessions:
+            if session.id == session_id:
+                return session
+
+        return None
+
+    async def get_by_user_id(
+        self,
+        user_id: UserId,
+    ) -> list[Session]:
+        return [session for session in self.sessions if session.user_id == user_id]
+
+    async def add(self, session: Session) -> None:
+        self.sessions.append(session)
+
+    async def revoke(self, session: Session) -> None:
+        return None
+
+
 class FakeUnitOfWork(UnitOfWork):
     def __init__(self) -> None:
         self.users = FakeUserRepository()
+        self.sessions = FakeSessionRepository()
         self.committed = False
         self.rolled_back = False
 
@@ -95,6 +126,12 @@ class FakePasswordHasher(PasswordHasher):
         password_hash: PasswordHash,
     ) -> bool:
         return password_hash.value == (f"hashed:{password.value}")
+
+    def needs_rehash(
+        self,
+        password_hash: PasswordHash,
+    ) -> bool:
+        return False
 
 
 @pytest.mark.asyncio

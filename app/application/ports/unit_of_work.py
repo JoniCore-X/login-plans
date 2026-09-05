@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 
+from app.application.sessions.ports import SessionRepository
 from app.application.users.ports import UserRepository
 
 
 class UnitOfWork(ABC):
     users: UserRepository
+    sessions: SessionRepository
 
     @abstractmethod
     async def __aenter__(self) -> "UnitOfWork": ...
