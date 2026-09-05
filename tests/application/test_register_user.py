@@ -78,10 +78,15 @@ class FakeUnitOfWorkFactory:
 
 
 class FakePasswordHasher(PasswordHasher):
+    def __init__(self) -> None:
+        self.hashed_password: PlainPassword | None = None
+
     def hash(
         self,
         password: PlainPassword,
     ) -> PasswordHash:
+        self.hashed_password = password
+
         return PasswordHash(
             f"hashed:{password.value}",
         )
@@ -117,6 +122,12 @@ async def test_register_user() -> None:
     assert isinstance(result.id, UUID)
     assert unit_of_work_factory.unit_of_work.committed is True
     assert len(unit_of_work_factory.unit_of_work.users.users) == 1
+
+    created_user = unit_of_work_factory.unit_of_work.users.users[0]
+
+    assert created_user.id == result.id
+    assert created_user.password_hash.value == (f"hashed:{scenario.password.value}")
+    assert password_hasher.hashed_password == scenario.password
 
 
 @pytest.mark.asyncio

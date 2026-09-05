@@ -9,3 +9,6 @@ def test_user_can_be_created() -> None:
 
     assert user.email.value == "user@example.com"
     assert user.password_hash.value == "hashed-password"
+    assert user.id is not None
+    assert user.created_at is not None
+    assert user.updated_at is not None
