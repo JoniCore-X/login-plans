@@ -3,6 +3,7 @@ from app.application.ports.password_hasher import PasswordHasher
 from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
 from app.application.users.services import (
     GetUserService,
+    LoginUserService,
     RegisterUserService,
 )
 from app.core.config import Settings
@@ -40,6 +41,15 @@ class ApplicationContainer:
         self,
     ) -> RegisterUserService:
         return RegisterUserService(
+            unit_of_work_factory=self.unit_of_work_factory,
+            password_hasher=self.password_hasher,
+            clock=self.clock,
+        )
+
+    def create_login_user_service(
+        self,
+    ) -> LoginUserService:
+        return LoginUserService(
             unit_of_work_factory=self.unit_of_work_factory,
             password_hasher=self.password_hasher,
             clock=self.clock,

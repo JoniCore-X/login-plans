@@ -6,12 +6,18 @@ from fastapi import FastAPI
 
 from app.api.exception_handlers import (
     domain_error_handler,
+    invalid_credentials_handler,
     invalid_email_handler,
     user_already_exists_handler,
+    user_cannot_authenticate_handler,
     user_not_found_handler,
 )
 from app.api.router import router
 from app.application.ports.password_hasher import PasswordHasher
+from app.application.users.exceptions import (
+    InvalidCredentialsError,
+    UserCannotAuthenticateError,
+)
 from app.bootstrap.container import ApplicationContainer
 from app.core.config import Settings
 from app.core.logging import configure_logging
@@ -82,6 +88,16 @@ class Application:
         application.add_exception_handler(
             InvalidEmailError,
             invalid_email_handler,
+        )
+
+        application.add_exception_handler(
+            InvalidCredentialsError,
+            invalid_credentials_handler,
+        )
+
+        application.add_exception_handler(
+            UserCannotAuthenticateError,
+            user_cannot_authenticate_handler,
         )
 
         application.add_exception_handler(

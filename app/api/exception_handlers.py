@@ -47,6 +47,36 @@ async def invalid_email_handler(
     )
 
 
+async def invalid_credentials_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=401,
+        content={
+            "error": {
+                "code": "INVALID_CREDENTIALS",
+                "message": "Invalid credentials.",
+            },
+        },
+    )
+
+
+async def user_cannot_authenticate_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=403,
+        content={
+            "error": {
+                "code": "AUTHENTICATION_NOT_ALLOWED",
+                "message": "Authentication is not available for this account.",
+            },
+        },
+    )
+
+
 async def domain_error_handler(
     request: Request,
     exc: Exception,

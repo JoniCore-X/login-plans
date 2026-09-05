@@ -13,6 +13,25 @@ class RegisterRequest(BaseModel):
     password: str
 
 
+class LoginRequest(BaseModel):
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+    )
+
+    email: str
+    password: str
+
+
+class LoginResponse(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    user_id: UUID
+    session_id: UUID
+    expires_at: datetime
+
+
 class UserResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,

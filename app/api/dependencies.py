@@ -5,6 +5,7 @@ from fastapi import Request
 
 from app.application.users.services import (
     GetUserService,
+    LoginUserService,
     RegisterUserService,
 )
 from app.bootstrap.container import ApplicationContainer
@@ -28,6 +29,14 @@ def get_register_user_service(
     container = get_application_container(request)
 
     return container.create_register_user_service()
+
+
+def get_login_user_service(
+    request: Request,
+) -> LoginUserService:
+    container = get_application_container(request)
+
+    return container.create_login_user_service()
 
 
 def get_get_user_service(
