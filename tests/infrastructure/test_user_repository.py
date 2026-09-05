@@ -1,15 +1,10 @@
-from datetime import datetime
-from uuid import uuid4
-
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.entities.user import User
-from app.domain.value_objects.email import Email
-from app.domain.value_objects.password_hash import PasswordHash
 from app.infrastructure.persistence.repositories.user import (
     PostgresUserRepository,
 )
+from tests.factories import user_factory
 
 
 @pytest.mark.integration
@@ -21,17 +16,7 @@ async def test_user_repository_can_persist_user(
         test_session,
     )
 
-    user = User(
-        id=uuid4(),
-        email=Email(
-            f"{uuid4()}@example.com",
-        ),
-        password_hash=PasswordHash(
-            "test-hash",
-        ),
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
-    )
+    user = user_factory()
 
     await repository.add(user)
 

@@ -2,7 +2,6 @@ from uuid import UUID
 
 import pytest
 
-from app.application.commands.register_user import RegisterUserCommand
 from app.application.ports.password_hasher import PasswordHasher
 from app.application.services.register_user import RegisterUserService
 from app.domain.entities.user import User
@@ -11,6 +10,7 @@ from app.domain.repositories.unit_of_work import UnitOfWork
 from app.domain.repositories.user_repository import UserRepository
 from app.domain.value_objects.password import PlainPassword
 from app.domain.value_objects.password_hash import PasswordHash
+from tests.factories import registration_scenario_factory
 
 
 class FakeUserRepository(UserRepository):
@@ -104,14 +104,16 @@ async def test_register_user() -> None:
         password_hasher=password_hasher,
     )
 
-    result = await service.execute(
-        RegisterUserCommand(
-            email="USER@example.com",
-            password="secret",
-        ),
+    scenario = registration_scenario_factory(
+        email="USER@example.com",
+        password="secret",
     )
 
-    assert result.email == "user@example.com"
+    result = await service.execute(
+        scenario.command,
+    )
+
+    assert result.email == scenario.email.value
     assert isinstance(result.id, UUID)
     assert unit_of_work_factory.unit_of_work.committed is True
     assert len(unit_of_work_factory.unit_of_work.users.users) == 1
@@ -127,12 +129,12 @@ async def test_register_user_rejects_duplicate_email() -> None:
         password_hasher=password_hasher,
     )
 
-    command = RegisterUserCommand(
+    scenario = registration_scenario_factory(
         email="user@example.com",
         password="secret",
     )
 
-    await service.execute(command)
+    await service.execute(scenario.command)
 
     with pytest.raises(UserAlreadyExistsError):
-        await service.execute(command)
+        await service.execute(scenario.command)

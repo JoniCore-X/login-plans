@@ -1,15 +1,10 @@
-from app.domain.entities.user import User
-from app.domain.value_objects.email import Email
-from app.domain.value_objects.password_hash import PasswordHash
+from tests.factories import user_factory
 
 
 def test_user_can_be_created() -> None:
-    email = Email("user@example.com")
-    password_hash = PasswordHash("hashed-password")
-
-    user = User.create(
-        email=email,
-        password_hash=password_hash,
+    user = user_factory(
+        email="user@example.com",
+        password_hash="hashed-password",
     )
 
     assert user.email.value == "user@example.com"

@@ -1,5 +1,6 @@
 import os
 
+import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
@@ -13,6 +14,10 @@ from app.core.config import get_settings
 from app.database.engine import create_database_engine
 from app.infrastructure.unit_of_work_factory import (
     SqlAlchemyUnitOfWorkFactory,
+)
+from tests.factories import (
+    RegistrationScenario,
+    registration_scenario_factory,
 )
 
 os.environ["APP_ENV"] = "test"
@@ -72,3 +77,8 @@ async def test_uow_factory(
     return SqlAlchemyUnitOfWorkFactory(
         test_session_factory,
     )
+
+
+@pytest.fixture
+def registration_scenario() -> RegistrationScenario:
+    return registration_scenario_factory()
