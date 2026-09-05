@@ -18,5 +18,5 @@ def test_root_endpoint() -> None:
     response = client.get("/api/v1/")
 
     assert response.status_code == 200
-    assert response.json()["application"] == "login-plans"
+    assert response.json()["application"] == "login-plans-test"
     assert response.json()["version"] == "v1"

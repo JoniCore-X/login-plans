@@ -30,6 +30,9 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = [
+    "integration: tests that require external infrastructure",
+]
 
 [tool.ruff]
 line-length = 88

@@ -1,17 +1,10 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from app.domain.exceptions.base import DomainError
-from app.domain.exceptions.user import (
-    InvalidEmailError,
-    UserAlreadyExistsError,
-    UserNotFoundError,
-)
-
 
 async def user_already_exists_handler(
     request: Request,
-    exc: UserAlreadyExistsError,
+    exc: Exception,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=409,
@@ -26,7 +19,7 @@ async def user_already_exists_handler(
 
 async def user_not_found_handler(
     request: Request,
-    exc: UserNotFoundError,
+    exc: Exception,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=404,
@@ -41,7 +34,7 @@ async def user_not_found_handler(
 
 async def invalid_email_handler(
     request: Request,
-    exc: InvalidEmailError,
+    exc: Exception,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=422,
@@ -56,7 +49,7 @@ async def invalid_email_handler(
 
 async def domain_error_handler(
     request: Request,
-    exc: DomainError,
+    exc: Exception,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=400,

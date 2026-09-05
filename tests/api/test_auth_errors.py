@@ -6,6 +6,7 @@ import pytest
 from app.main import app
 
 
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_register_rejects_invalid_email() -> None:
     transport = httpx.ASGITransport(app=app)
@@ -26,6 +27,7 @@ async def test_register_rejects_invalid_email() -> None:
     assert response.json()["error"]["code"] == "INVALID_EMAIL"
 
 
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_register_rejects_duplicate_email() -> None:
     email = f"duplicate-{uuid4()}@example.com"
