@@ -24,6 +24,9 @@ from app.api.exception_handlers import (
     user_not_found_handler,
     weak_password_handler,
 )
+from app.api.middleware.request_id import (
+    RequestIdMiddleware,
+)
 from app.api.middleware.security_headers import (
     SecurityHeadersMiddleware,
 )
@@ -115,6 +118,10 @@ class Application:
         application.add_middleware(
             SecurityHeadersMiddleware,
             production=self.settings.is_production,
+        )
+
+        application.add_middleware(
+            RequestIdMiddleware,
         )
 
         application.state.container = self.container
