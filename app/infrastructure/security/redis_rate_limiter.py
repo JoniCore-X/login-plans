@@ -7,6 +7,7 @@ import redis.asyncio as redis
 
 from app.application.ports.clock import Clock
 from app.application.ports.rate_limiter import RateLimiter
+from app.infrastructure.tracing import trace_span
 
 _ALLOW_SCRIPT = """
 local key = KEYS[1]
@@ -42,6 +43,7 @@ class RedisRateLimiter(RateLimiter):
         self.limit = limit
         self.window = window
 
+    @trace_span("redis.rate_limit_check")
     async def allow(self, key: str) -> bool:
         now_ms = int(self.clock.now().timestamp() * 1000)
         window_ms = int(self.window.total_seconds() * 1000)

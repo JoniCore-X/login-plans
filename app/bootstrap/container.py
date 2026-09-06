@@ -88,12 +88,16 @@ class ApplicationContainer:
         if credential_generator is None:
             credential_generator = SecureSessionCredentialGenerator()
 
+        self.redis_client: redis.Redis | None = None
+
         if rate_limiter is None:
             if settings.redis_url:
                 redis_client = redis.Redis.from_url(
                     settings.redis_url,
                     decode_responses=True,
                 )
+
+                self.redis_client = redis_client
 
                 rate_limiter = RedisRateLimiter(
                     redis_client=redis_client,

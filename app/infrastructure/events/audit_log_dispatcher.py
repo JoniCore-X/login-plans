@@ -16,6 +16,7 @@ from app.domain.events import DomainEvent
 from app.infrastructure.persistence.models.audit_log import (
     AuditLogModel,
 )
+from app.infrastructure.tracing import trace_span
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,7 @@ class AuditLogDispatcher(EventDispatcher):
     ) -> None:
         self._session_factory = session_factory
 
+    @trace_span("audit.persist_events")
     async def dispatch(
         self,
         events: list[DomainEvent],

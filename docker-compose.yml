@@ -60,6 +60,8 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://login_plans:login_plans_dev_password@postgres:5432/login_plans
       REDIS_URL: redis://redis:6379/0
+      OTLP_ENDPOINT: http://jaeger:4317
+      ENABLE_TRACING: "true"
       APP_ENV: production
       DEBUG: "false"
 
@@ -71,6 +73,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      jaeger:
+        condition: service_started
 
     healthcheck:
       test:
@@ -84,6 +88,20 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: login_plans_jaeger
+    restart: unless-stopped
+
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
 
 
   prometheus:

@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     database_url: SecretStr
     cors_origins: str = "http://localhost:3000,http://localhost:5173"
     redis_url: str | None = None
+    otlp_endpoint: str | None = None
+    enable_tracing: bool = True
 
     @property
     def allowed_origins(self) -> list[str]:

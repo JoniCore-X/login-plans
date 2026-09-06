@@ -44,6 +44,7 @@ from app.application.users.exceptions import (
 from app.bootstrap.container import ApplicationContainer
 from app.core.config import Settings
 from app.core.logging import configure_logging
+from app.core.tracing import instrument_app, setup_tracing
 from app.domain.exceptions.base import DomainError
 from app.domain.plans.exceptions import (
     ImmutablePlanError,
@@ -88,7 +89,11 @@ class Application:
     def create(self) -> FastAPI:
         configure_logging(
             self.settings.debug,
+            json_logs=self.settings.is_production,
         )
+
+        if self.settings.enable_tracing:
+            setup_tracing(self.settings)
 
         @asynccontextmanager
         async def lifespan(
@@ -215,6 +220,12 @@ class Application:
         application.include_router(router)
 
         setup_metrics(application)
+
+        if self.settings.enable_tracing:
+            instrument_app(
+                application,
+                engine=self.container.database.engine,
+            )
 
         logger.info(
             "Application created: %s",

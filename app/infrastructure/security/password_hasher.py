@@ -7,12 +7,14 @@ from argon2.exceptions import (
 
 from app.application.ports.password_hasher import PasswordHasher
 from app.domain.users.value_objects import PasswordHash, PlainPassword
+from app.infrastructure.tracing import trace_span
 
 
 class Argon2PasswordHasher(PasswordHasher):
     def __init__(self) -> None:
         self._hasher = Argon2PasswordHasherLibrary()
 
+    @trace_span("argon2.hash_password")
     def hash(
         self,
         password: PlainPassword,
@@ -23,6 +25,7 @@ class Argon2PasswordHasher(PasswordHasher):
 
         return PasswordHash(hashed_password)
 
+    @trace_span("argon2.verify_password")
     def verify(
         self,
         password: PlainPassword,

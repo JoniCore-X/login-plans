@@ -3,6 +3,7 @@ import uuid
 from collections.abc import Awaitable, Callable
 
 import structlog
+from opentelemetry import trace
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
@@ -21,8 +22,15 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         request_id = request.headers.get(_REQUEST_ID_HEADER) or uuid.uuid4().hex
 
         structlog.contextvars.clear_contextvars()
+        span = trace.get_current_span()
+        trace_id = format(
+            span.get_span_context().trace_id,
+            "032x",
+        )
+
         structlog.contextvars.bind_contextvars(
             request_id=request_id,
+            trace_id=trace_id,
             method=request.method,
             path=request.url.path,
             client_ip=(
@@ -55,5 +63,6 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         )
 
         response.headers[_REQUEST_ID_HEADER] = request_id
+        response.headers["X-Trace-ID"] = trace_id
 
         return response
