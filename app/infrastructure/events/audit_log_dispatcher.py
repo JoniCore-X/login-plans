@@ -4,6 +4,7 @@ import logging
 from typing import Any
 from uuid import UUID
 
+import structlog
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.application.ports.event_dispatcher import EventDispatcher
@@ -50,6 +51,9 @@ class AuditLogDispatcher(EventDispatcher):
         if not events:
             return
 
+        context = structlog.contextvars.get_contextvars()
+        request_id = context.get("request_id")
+
         try:
             async with self._session_factory() as session:
                 for event in events:
@@ -57,6 +61,7 @@ class AuditLogDispatcher(EventDispatcher):
                         AuditLogModel(
                             event_type=event.event_type,
                             user_id=_extract_user_id(event),
+                            request_id=request_id,
                             payload=_serialize_event(event),
                             occurred_at=event.occurred_at,
                         ),

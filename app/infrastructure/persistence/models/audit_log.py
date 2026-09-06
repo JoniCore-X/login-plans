@@ -27,6 +27,11 @@ class AuditLogModel(Base):
         nullable=True,
     )
 
+    request_id: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+    )
+
     payload: Mapped[dict[str, object]] = mapped_column(
         JSONB,
         nullable=False,
@@ -42,5 +47,9 @@ class AuditLogModel(Base):
             "ix_audit_logs_user_time",
             "user_id",
             occurred_at.desc(),
+        ),
+        Index(
+            "ix_audit_logs_request_id",
+            "request_id",
         ),
     )
