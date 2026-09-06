@@ -3,6 +3,7 @@ from tests.factories.clock import FixedClock
 from tests.factories.commands import (
     register_user_command_factory,
 )
+from tests.factories.plan import plan_factory
 from tests.factories.scenarios import (
     RegistrationScenario,
     registration_scenario_factory,
@@ -21,6 +22,7 @@ __all__ = [
     "TestApplicationFactory",
     "email_factory",
     "password_hash_factory",
+    "plan_factory",
     "plain_password_factory",
     "register_user_command_factory",
     "registration_scenario_factory",

@@ -1,6 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.ports.unit_of_work import UnitOfWork
+from app.infrastructure.persistence.repositories.plan import (
+    PostgresPlanRepository,
+)
 from app.infrastructure.persistence.repositories.session import (
     PostgresSessionRepository,
 )
@@ -14,6 +17,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         self.session = session
         self.users = PostgresUserRepository(session)
         self.sessions = PostgresSessionRepository(session)
+        self.plans = PostgresPlanRepository(session)
 
     async def __aenter__(self) -> "SqlAlchemyUnitOfWork":
         return self

@@ -5,6 +5,7 @@ from app.api.dependencies import (
     get_app_settings,
     get_application_container,
 )
+from app.api.plans.router import router as plans_router
 from app.api.schemas.health import HealthResponse
 from app.bootstrap.container import ApplicationContainer
 from app.core.config import Settings
@@ -12,6 +13,7 @@ from app.core.config import Settings
 router = APIRouter(prefix="/api/v1")
 
 router.include_router(auth_router)
+router.include_router(plans_router)
 
 
 @router.get("/health", response_model=HealthResponse)

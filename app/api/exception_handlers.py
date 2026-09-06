@@ -141,6 +141,81 @@ async def domain_error_handler(
     )
 
 
+async def plan_not_found_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={
+            "error": {
+                "code": "PLAN_NOT_FOUND",
+                "message": "Plan not found.",
+            },
+        },
+    )
+
+
+async def immutable_plan_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=400,
+        content={
+            "error": {
+                "code": "PLAN_IMMUTABLE",
+                "message": "Archived plans cannot be modified.",
+            },
+        },
+    )
+
+
+async def stale_plan_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=409,
+        content={
+            "error": {
+                "code": "PLAN_VERSION_CONFLICT",
+                "message": "Plan was modified by another request.",
+            },
+        },
+    )
+
+
+async def invalid_plan_name_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": {
+                "code": "INVALID_PLAN_NAME",
+                "message": str(exc),
+            },
+        },
+    )
+
+
+async def invalid_plan_description_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": {
+                "code": "INVALID_PLAN_DESCRIPTION",
+                "message": str(exc),
+            },
+        },
+    )
+
+
 async def internal_error_handler(
     request: Request,
     exc: Exception,

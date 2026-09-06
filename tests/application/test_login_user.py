@@ -33,6 +33,7 @@ from tests.factories import (
     FixedClock,
     user_factory,
 )
+from tests.fakes.plans import FakePlanRepository
 
 
 class FakeUserRepository(UserRepository):
@@ -118,6 +119,7 @@ class FakeUnitOfWork(UnitOfWork):
     def __init__(self) -> None:
         self.users = FakeUserRepository()
         self.sessions = FakeSessionRepository()
+        self.plans = FakePlanRepository()
         self.committed = False
         self.rolled_back = False
 

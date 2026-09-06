@@ -21,6 +21,7 @@ from app.domain.sessions.value_objects import (
 from app.domain.users.entities import User
 from app.domain.users.value_objects import Email, UserId
 from tests.factories import FixedClock, session_factory, user_factory
+from tests.fakes.plans import FakePlanRepository
 
 
 class FakeUserRepository(UserRepository):
@@ -98,6 +99,7 @@ class FakeUnitOfWork(UnitOfWork):
     def __init__(self) -> None:
         self.users = FakeUserRepository()
         self.sessions = FakeSessionRepository()
+        self.plans = FakePlanRepository()
         self.committed = False
         self.rolled_back = False
 

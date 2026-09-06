@@ -8,6 +8,13 @@ from app.application.auth.services import (
     LogoutService,
     RotateSessionService,
 )
+from app.application.plans.services import (
+    ChangePlanStatusService,
+    CreatePlanService,
+    GetPlanService,
+    ListUserPlansService,
+    UpdatePlanService,
+)
 from app.application.users.services import (
     GetUserService,
     LoginUserService,
@@ -66,6 +73,46 @@ def get_rotate_session_service(
     container = get_application_container(request)
 
     return container.create_rotate_session_service()
+
+
+def get_create_plan_service(
+    request: Request,
+) -> CreatePlanService:
+    container = get_application_container(request)
+
+    return container.create_create_plan_service()
+
+
+def get_update_plan_service(
+    request: Request,
+) -> UpdatePlanService:
+    container = get_application_container(request)
+
+    return container.create_update_plan_service()
+
+
+def get_change_plan_status_service(
+    request: Request,
+) -> ChangePlanStatusService:
+    container = get_application_container(request)
+
+    return container.create_change_plan_status_service()
+
+
+def get_get_plan_service(
+    request: Request,
+) -> GetPlanService:
+    container = get_application_container(request)
+
+    return container.create_get_plan_service()
+
+
+def get_list_user_plans_service(
+    request: Request,
+) -> ListUserPlansService:
+    container = get_application_container(request)
+
+    return container.create_list_user_plans_service()
 
 
 def get_get_user_service(

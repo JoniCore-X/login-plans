@@ -5,6 +5,13 @@ from app.application.auth.services import (
     LogoutService,
     RotateSessionService,
 )
+from app.application.plans.services import (
+    ChangePlanStatusService,
+    CreatePlanService,
+    GetPlanService,
+    ListUserPlansService,
+    UpdatePlanService,
+)
 from app.application.ports.clock import Clock
 from app.application.ports.health_checker import HealthChecker
 from app.application.ports.password_hasher import PasswordHasher
@@ -126,6 +133,44 @@ class ApplicationContainer:
             unit_of_work_factory=self.unit_of_work_factory,
             credential_generator=self.credential_generator,
             clock=self.clock,
+        )
+
+    def create_create_plan_service(
+        self,
+    ) -> CreatePlanService:
+        return CreatePlanService(
+            unit_of_work_factory=self.unit_of_work_factory,
+            clock=self.clock,
+        )
+
+    def create_update_plan_service(
+        self,
+    ) -> UpdatePlanService:
+        return UpdatePlanService(
+            unit_of_work_factory=self.unit_of_work_factory,
+            clock=self.clock,
+        )
+
+    def create_change_plan_status_service(
+        self,
+    ) -> ChangePlanStatusService:
+        return ChangePlanStatusService(
+            unit_of_work_factory=self.unit_of_work_factory,
+            clock=self.clock,
+        )
+
+    def create_get_plan_service(
+        self,
+    ) -> GetPlanService:
+        return GetPlanService(
+            unit_of_work_factory=self.unit_of_work_factory,
+        )
+
+    def create_list_user_plans_service(
+        self,
+    ) -> ListUserPlansService:
+        return ListUserPlansService(
+            unit_of_work_factory=self.unit_of_work_factory,
         )
 
     def create_get_user_service(

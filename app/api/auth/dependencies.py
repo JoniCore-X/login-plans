@@ -12,6 +12,7 @@ from app.application.auth.exceptions import (
     RateLimitExceededError,
 )
 from app.application.auth.services import AuthenticationService
+from app.domain.users.value_objects import UserId
 
 _BEARER_PREFIX = "Bearer "
 
@@ -72,3 +73,12 @@ async def get_authenticated_user(
     return await service.authenticate(
         credential,
     )
+
+
+async def get_current_user_id(
+    authenticated_user: Annotated[
+        AuthenticatedUser,
+        Depends(get_authenticated_user),
+    ],
+) -> UserId:
+    return UserId(authenticated_user.user_id)
