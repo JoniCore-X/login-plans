@@ -3,6 +3,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.exception_handlers import (
     authentication_error_handler,
@@ -22,6 +23,9 @@ from app.api.exception_handlers import (
     user_cannot_authenticate_handler,
     user_not_found_handler,
     weak_password_handler,
+)
+from app.api.middleware.security_headers import (
+    SecurityHeadersMiddleware,
 )
 from app.api.router import router
 from app.application.auth.exceptions import (
@@ -98,6 +102,19 @@ class Application:
             title=self.settings.app_name,
             debug=self.settings.debug,
             lifespan=lifespan,
+        )
+
+        application.add_middleware(
+            CORSMiddleware,
+            allow_origins=self.settings.allowed_origins,
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+
+        application.add_middleware(
+            SecurityHeadersMiddleware,
+            production=self.settings.is_production,
         )
 
         application.state.container = self.container

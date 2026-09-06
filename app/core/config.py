@@ -9,6 +9,17 @@ class Settings(BaseSettings):
     app_env: str = "development"
     debug: bool = False
     database_url: SecretStr
+    cors_origins: str = "http://localhost:3000,http://localhost:5173"
+
+    @property
+    def allowed_origins(self) -> list[str]:
+        return [
+            origin.strip() for origin in self.cors_origins.split(",") if origin.strip()
+        ]
+
+    @property
+    def is_production(self) -> bool:
+        return self.app_env == "production"
 
     model_config = SettingsConfigDict(
         env_file=(".env", ".env.test"),
