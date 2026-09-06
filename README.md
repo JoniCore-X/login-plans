@@ -101,6 +101,28 @@ ruff check .
 ```
 
 Requisitos: Python 3.12+, Docker (solo para Postgres/Redis), pip.
+## Nuevo proyecto desde cero (Cookiecutter)
+
+Si estás empezando un SaaS nuevo y quieres esta arquitectura desde el día 1:
+
+```bash
+pip install cookiecutter
+cookiecutter https://github.com/JoniCore-X/login-plans --checkout template
+
+# Responde las preguntas:
+#   project_name [My SaaS]: fitness-tracker
+#   project_slug [fitness_tracker]:
+#   author_name  [Your Name]: Tu Nombre
+#   email        [you@example.com]: tu@email.com
+#   use_stripe   [n]: y
+#   use_oauth    [n]: y
+
+cd fitness-tracker
+docker compose up -d
+```
+
+Genera el proyecto completo renombrado (nombre, contenedores Docker, bases
+de datos, `pyproject.toml`, `.env.example`, tests) listo para desarrollar.
 ## Observabilidad
 
 | Servicio | URL | Uso |
