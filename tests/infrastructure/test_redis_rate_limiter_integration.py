@@ -11,7 +11,7 @@ from app.infrastructure.security.redis_rate_limiter import (
 from tests.factories import FixedClock
 
 REDIS_URL = os.environ.get(
-    "REDIS_URL",
+    "REDIS_TEST_URL",
     "redis://localhost:6379/0",
 )
 

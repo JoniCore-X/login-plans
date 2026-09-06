@@ -35,6 +35,9 @@ else:
     TEST_DATABASE_NAME = "login_plans_test"
 
 os.environ["APP_ENV"] = "test"
+os.environ["APP_NAME"] = "login-plans-test"
+os.environ["DEBUG"] = "false"
+os.environ["REDIS_URL"] = ""
 os.environ["DATABASE_URL"] = (
     "postgresql+asyncpg://login_plans:login_plans_dev_password"
     f"@localhost:5432/{TEST_DATABASE_NAME}"

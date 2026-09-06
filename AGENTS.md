@@ -204,6 +204,10 @@ Notas:
   con `-n auto`); el schema se crea via `create_all`, no por Alembic.
 - `pytest` lee `.env.test` (`APP_ENV=test`): tracing activo pero sin
   exporter (provider sin processor — spans y trace_ids válidos sin ruido).
+- `conftest.py` fuerza `APP_ENV/APP_NAME/DEBUG/DATABASE_URL` via
+  `os.environ` y vacía `REDIS_URL` — un `.env` de desarrollo no puede
+  contaminar la suite. Los tests de integración Redis usan
+  `REDIS_TEST_URL` (default `localhost:6379`), independiente del env de la app.
 - `.env.example` documenta `REDIS_URL`, `OTLP_ENDPOINT`, `ENABLE_TRACING`.
 
 ---
