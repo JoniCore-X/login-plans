@@ -30,10 +30,8 @@ async def test_hsts_not_sent_in_development(
 async def test_hsts_sent_in_production(
     test_application_factory: TestApplicationFactory,
 ) -> None:
-    test_application_factory.settings = (
-        test_application_factory.settings.model_copy(
-            update={"app_env": "production"},
-        )
+    test_application_factory.settings = test_application_factory.settings.model_copy(
+        update={"app_env": "production"},
     )
     app = test_application_factory.create()
 

@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from app.application.ports.clock import Clock
 
@@ -17,3 +17,6 @@ class FixedClock(Clock):
 
     def now(self) -> datetime:
         return self.current
+
+    def advance(self, delta: timedelta) -> None:
+        self.current += delta

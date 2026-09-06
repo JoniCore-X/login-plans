@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     debug: bool = False
     database_url: SecretStr
     cors_origins: str = "http://localhost:3000,http://localhost:5173"
+    redis_url: str | None = None
 
     @property
     def allowed_origins(self) -> list[str]:

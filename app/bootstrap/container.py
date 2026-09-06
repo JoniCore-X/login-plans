@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+import redis.asyncio as redis
+
 from app.application.auth.services import (
     AuthenticationService,
     ChangePasswordService,
@@ -43,6 +45,9 @@ from app.infrastructure.persistence.postgres_health import (
 from app.infrastructure.security.rate_limiter import (
     InMemoryRateLimiter,
 )
+from app.infrastructure.security.redis_rate_limiter import (
+    RedisRateLimiter,
+)
 from app.infrastructure.security.session_credentials import (
     SecureSessionCredentialGenerator,
 )
@@ -84,11 +89,24 @@ class ApplicationContainer:
             credential_generator = SecureSessionCredentialGenerator()
 
         if rate_limiter is None:
-            rate_limiter = InMemoryRateLimiter(
-                clock=clock,
-                limit=LOGIN_RATE_LIMIT,
-                window=LOGIN_RATE_LIMIT_WINDOW,
-            )
+            if settings.redis_url:
+                redis_client = redis.Redis.from_url(
+                    settings.redis_url,
+                    decode_responses=True,
+                )
+
+                rate_limiter = RedisRateLimiter(
+                    redis_client=redis_client,
+                    clock=clock,
+                    limit=LOGIN_RATE_LIMIT,
+                    window=LOGIN_RATE_LIMIT_WINDOW,
+                )
+            else:
+                rate_limiter = InMemoryRateLimiter(
+                    clock=clock,
+                    limit=LOGIN_RATE_LIMIT,
+                    window=LOGIN_RATE_LIMIT_WINDOW,
+                )
 
         if health_checker is None:
             health_checker = PostgresHealthChecker(
