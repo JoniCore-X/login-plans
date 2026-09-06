@@ -12,6 +12,9 @@ from app.application.auth.exceptions import (
     RateLimitExceededError,
 )
 from app.application.auth.services import AuthenticationService
+from app.application.metrics import (
+    RATE_LIMIT_HITS,
+)
 from app.domain.users.value_objects import UserId
 
 _BEARER_PREFIX = "Bearer "
@@ -55,6 +58,9 @@ async def enforce_login_rate_limit(
     )
 
     if not allowed:
+        RATE_LIMIT_HITS.labels(
+            endpoint="login",
+        ).inc()
         raise RateLimitExceededError(
             "Too many login attempts.",
         )

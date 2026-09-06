@@ -1,6 +1,10 @@
 from datetime import timedelta
 from uuid import uuid4
 
+from app.application.metrics import (
+    AUTH_LOGIN_ATTEMPTS,
+    AUTH_REGISTER_ATTEMPTS,
+)
 from app.application.ports.clock import Clock
 from app.application.ports.email_sender import EmailSender
 from app.application.ports.password_hasher import PasswordHasher
@@ -25,7 +29,11 @@ from app.domain.users.exceptions import (
     UserAlreadyExistsError,
     UserNotFoundError,
 )
-from app.domain.users.value_objects import Email, PlainPassword
+from app.domain.users.value_objects import (
+    Email,
+    PlainPassword,
+    WeakPasswordError,
+)
 
 SESSION_DURATION = timedelta(hours=24)
 
@@ -53,7 +61,14 @@ class RegisterUserService:
         command: RegisterUserCommand,
     ) -> UserDTO:
         email = Email(command.email)
-        password = PlainPassword(command.password)
+
+        try:
+            password = PlainPassword(command.password)
+        except WeakPasswordError:
+            AUTH_REGISTER_ATTEMPTS.labels(
+                status="failed_weak_password",
+            ).inc()
+            raise
 
         unit_of_work = self.unit_of_work_factory.create()
 
@@ -63,6 +78,9 @@ class RegisterUserService:
             )
 
             if existing is not None:
+                AUTH_REGISTER_ATTEMPTS.labels(
+                    status="failed_email_exists",
+                ).inc()
                 raise UserAlreadyExistsError(
                     "A user with this email already exists",
                 )
@@ -111,6 +129,8 @@ class RegisterUserService:
             email.value,
             verification_token.value,
         )
+
+        AUTH_REGISTER_ATTEMPTS.labels(status="success").inc()
 
         return result
 
@@ -175,11 +195,17 @@ class LoginUserService:
             )
 
             if user is None:
+                AUTH_LOGIN_ATTEMPTS.labels(
+                    status="failed_invalid_credentials",
+                ).inc()
                 raise InvalidCredentialsError(
                     "Invalid credentials",
                 )
 
             if not user.can_authenticate():
+                AUTH_LOGIN_ATTEMPTS.labels(
+                    status="failed_inactive",
+                ).inc()
                 raise UserCannotAuthenticateError(
                     "User cannot authenticate",
                 )
@@ -188,6 +214,9 @@ class LoginUserService:
                 password,
                 user.password_hash,
             ):
+                AUTH_LOGIN_ATTEMPTS.labels(
+                    status="failed_invalid_credentials",
+                ).inc()
                 raise InvalidCredentialsError(
                     "Invalid credentials",
                 )
@@ -219,6 +248,8 @@ class LoginUserService:
             )
 
             await unit_of_work.sessions.add(session)
+
+            AUTH_LOGIN_ATTEMPTS.labels(status="success").inc()
 
             return AuthenticationDTO(
                 user_id=user.id.value,

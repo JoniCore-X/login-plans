@@ -24,6 +24,7 @@ from app.api.exception_handlers import (
     user_not_found_handler,
     weak_password_handler,
 )
+from app.api.middleware.metrics import setup_metrics
 from app.api.middleware.request_id import (
     RequestIdMiddleware,
 )
@@ -212,6 +213,8 @@ class Application:
         )
 
         application.include_router(router)
+
+        setup_metrics(application)
 
         logger.info(
             "Application created: %s",

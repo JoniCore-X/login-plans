@@ -2,6 +2,11 @@ from uuid import uuid4
 
 from app.application.auth.dto import AuthenticatedUser
 from app.application.auth.exceptions import AuthenticationError
+from app.application.metrics import (
+    AUTH_EMAIL_VERIFICATIONS,
+    AUTH_PASSWORD_CHANGES,
+    AUTH_SESSIONS_REVOKED,
+)
 from app.application.ports.clock import Clock
 from app.application.ports.password_hasher import PasswordHasher
 from app.application.ports.session_credentials import (
@@ -81,6 +86,10 @@ class AuthenticationService:
                     unit_of_work,
                     session,
                 )
+
+                AUTH_SESSIONS_REVOKED.labels(
+                    reason="replay_detected",
+                ).inc()
             elif not session.is_active(now=self.clock.now()):
                 raise AuthenticationError(
                     "Authentication failed.",
@@ -171,6 +180,10 @@ class LogoutService:
                 ),
             )
 
+            AUTH_SESSIONS_REVOKED.labels(
+                reason="logout",
+            ).inc()
+
 
 class ChangePasswordService:
     def __init__(
@@ -247,6 +260,12 @@ class ChangePasswordService:
                         ),
                     )
 
+                    AUTH_SESSIONS_REVOKED.labels(
+                        reason="password_change",
+                    ).inc()
+
+            AUTH_PASSWORD_CHANGES.inc()
+
 
 class VerifyEmailService:
     def __init__(
@@ -278,12 +297,22 @@ class VerifyEmailService:
                     "Invalid verification token.",
                 )
 
-            user.verify_email(
-                token_hash=token_hash.value,
-                now=self.clock.now(),
-            )
+            try:
+                user.verify_email(
+                    token_hash=token_hash.value,
+                    now=self.clock.now(),
+                )
+            except InvalidVerificationTokenError:
+                AUTH_EMAIL_VERIFICATIONS.labels(
+                    status="failed",
+                ).inc()
+                raise
 
             await unit_of_work.users.update(user)
+
+            AUTH_EMAIL_VERIFICATIONS.labels(
+                status="success",
+            ).inc()
 
             for event in user.pull_events():
                 unit_of_work.collect_event(event)
@@ -342,6 +371,10 @@ class RotateSessionService:
                     unit_of_work,
                     session,
                 )
+
+                AUTH_SESSIONS_REVOKED.labels(
+                    reason="replay_detected",
+                ).inc()
             elif not session.is_active(now=now):
                 raise AuthenticationError(
                     "Authentication failed.",

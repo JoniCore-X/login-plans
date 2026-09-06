@@ -7,6 +7,10 @@ from uuid import UUID
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.application.metrics import (
+    AUDIT_EVENTS,
+    AUDIT_FAILURES,
+)
 from app.application.ports.event_dispatcher import EventDispatcher
 from app.domain.events import DomainEvent
 from app.infrastructure.persistence.models.audit_log import (
@@ -68,5 +72,11 @@ class AuditLogDispatcher(EventDispatcher):
                     )
 
                 await session.commit()
+
+                for event in events:
+                    AUDIT_EVENTS.labels(
+                        event_type=event.event_type,
+                    ).inc()
         except Exception:
+            AUDIT_FAILURES.inc()
             logger.exception("Failed to persist audit log")

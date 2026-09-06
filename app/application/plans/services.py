@@ -1,5 +1,11 @@
 from uuid import uuid4
 
+from app.application.metrics import (
+    PLANS_ARCHIVED,
+    PLANS_CREATED,
+    PLANS_PUBLISHED,
+    PLANS_UPDATED,
+)
 from app.application.plans.commands import (
     ChangePlanStatusCommand,
     CreatePlanCommand,
@@ -87,6 +93,8 @@ class CreatePlanService:
             for event in plan.pull_events():
                 unit_of_work.collect_event(event)
 
+            PLANS_CREATED.inc()
+
             return plan_to_dto(plan)
 
 
@@ -144,6 +152,8 @@ class UpdatePlanService:
             for event in plan.pull_events():
                 unit_of_work.collect_event(event)
 
+            PLANS_UPDATED.inc()
+
             return plan_to_dto(plan)
 
 
@@ -175,8 +185,10 @@ class ChangePlanStatusService:
 
             if command.action == PlanStatusAction.PUBLISH:
                 plan.publish(now=self.clock.now())
+                PLANS_PUBLISHED.inc()
             else:
                 plan.archive(now=self.clock.now())
+                PLANS_ARCHIVED.inc()
 
             persisted = await unit_of_work.plans.update(plan)
 
