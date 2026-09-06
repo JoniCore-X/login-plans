@@ -24,6 +24,11 @@ class PasswordChanged(DomainEvent):
 
 
 @dataclass(frozen=True)
+class EmailVerified(DomainEvent):
+    user_id: UUID
+
+
+@dataclass(frozen=True)
 class SessionRotated(DomainEvent):
     session_id: UUID
     family_id: UUID

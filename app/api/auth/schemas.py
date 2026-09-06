@@ -22,6 +22,10 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
 class ChangePasswordRequest(BaseModel):
     model_config = ConfigDict(
         str_strip_whitespace=True,

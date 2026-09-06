@@ -14,6 +14,7 @@ from app.api.auth.schemas import (
     MeResponse,
     RegisterRequest,
     UserResponse,
+    VerifyEmailRequest,
 )
 from app.api.dependencies import (
     get_change_password_service,
@@ -21,17 +22,20 @@ from app.api.dependencies import (
     get_logout_service,
     get_register_user_service,
     get_rotate_session_service,
+    get_verify_email_service,
 )
 from app.application.auth.dto import AuthenticatedUser
 from app.application.auth.services import (
     ChangePasswordService,
     LogoutService,
     RotateSessionService,
+    VerifyEmailService,
 )
 from app.application.users.commands import (
     ChangePasswordCommand,
     LoginUserCommand,
     RegisterUserCommand,
+    VerifyEmailCommand,
 )
 from app.application.users.services import (
     LoginUserService,
@@ -69,6 +73,22 @@ async def register(
         status=user.status,
         created_at=user.created_at,
         updated_at=user.updated_at,
+    )
+
+
+@router.post(
+    "/verify-email",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def verify_email(
+    request: VerifyEmailRequest,
+    service: Annotated[
+        VerifyEmailService,
+        Depends(get_verify_email_service),
+    ],
+) -> None:
+    await service.execute(
+        VerifyEmailCommand(token=request.token),
     )
 
 

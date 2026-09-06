@@ -7,10 +7,12 @@ from app.infrastructure.persistence.models.audit_log import (
     AuditLogModel,
 )
 from app.infrastructure.persistence.models.plan import PlanModel
+from tests.factories import TestApplicationFactory
 
 
-async def register_and_login(
+async def register_verify_and_login(
     client: httpx.AsyncClient,
+    factory: TestApplicationFactory,
     email: str,
     password: str = "Strong-password-123!",
 ) -> dict[str, str]:
@@ -18,6 +20,14 @@ async def register_and_login(
         "/api/v1/auth/register",
         json={"email": email, "password": password},
     )
+
+    token = factory.email_sender.sent_verification_emails[-1][1]
+
+    verify = await client.post(
+        "/api/v1/auth/verify-email",
+        json={"token": token},
+    )
+    assert verify.status_code == 204
 
     login_response = await client.post(
         "/api/v1/auth/login",
@@ -37,8 +47,11 @@ def bearer(credential: str) -> dict[str, str]:
 async def test_full_plan_lifecycle(
     client: httpx.AsyncClient,
     test_session: AsyncSession,
+    test_application_factory: TestApplicationFactory,
 ) -> None:
-    login = await register_and_login(client, "owner@example.com")
+    login = await register_verify_and_login(
+        client, test_application_factory, "owner@example.com"
+    )
     headers = bearer(login["credential"])
 
     # CREATE
@@ -132,9 +145,14 @@ async def test_create_plan_requires_authentication(
 @pytest.mark.asyncio
 async def test_get_plan_of_another_user_returns_404(
     client: httpx.AsyncClient,
+    test_application_factory: TestApplicationFactory,
 ) -> None:
-    owner = await register_and_login(client, "owner2@example.com")
-    intruder = await register_and_login(client, "intruder@example.com")
+    owner = await register_verify_and_login(
+        client, test_application_factory, "owner2@example.com"
+    )
+    intruder = await register_verify_and_login(
+        client, test_application_factory, "intruder@example.com"
+    )
 
     create = await client.post(
         "/api/v1/plans",
@@ -154,8 +172,11 @@ async def test_get_plan_of_another_user_returns_404(
 @pytest.mark.asyncio
 async def test_update_plan_with_stale_version_returns_409(
     client: httpx.AsyncClient,
+    test_application_factory: TestApplicationFactory,
 ) -> None:
-    login = await register_and_login(client, "stale@example.com")
+    login = await register_verify_and_login(
+        client, test_application_factory, "stale@example.com"
+    )
     headers = bearer(login["credential"])
 
     create = await client.post(
@@ -185,8 +206,11 @@ async def test_update_plan_with_stale_version_returns_409(
 @pytest.mark.asyncio
 async def test_update_archived_plan_returns_400(
     client: httpx.AsyncClient,
+    test_application_factory: TestApplicationFactory,
 ) -> None:
-    login = await register_and_login(client, "archive@example.com")
+    login = await register_verify_and_login(
+        client, test_application_factory, "archive@example.com"
+    )
     headers = bearer(login["credential"])
 
     create = await client.post(
@@ -214,8 +238,11 @@ async def test_update_archived_plan_returns_400(
 @pytest.mark.asyncio
 async def test_create_plan_with_invalid_name_returns_422(
     client: httpx.AsyncClient,
+    test_application_factory: TestApplicationFactory,
 ) -> None:
-    login = await register_and_login(client, "badname@example.com")
+    login = await register_verify_and_login(
+        client, test_application_factory, "badname@example.com"
+    )
     headers = bearer(login["credential"])
 
     response = await client.post(
@@ -231,9 +258,14 @@ async def test_create_plan_with_invalid_name_returns_422(
 @pytest.mark.asyncio
 async def test_list_plans_only_shows_own(
     client: httpx.AsyncClient,
+    test_application_factory: TestApplicationFactory,
 ) -> None:
-    owner = await register_and_login(client, "lister@example.com")
-    other = await register_and_login(client, "other@example.com")
+    owner = await register_verify_and_login(
+        client, test_application_factory, "lister@example.com"
+    )
+    other = await register_verify_and_login(
+        client, test_application_factory, "other@example.com"
+    )
 
     await client.post(
         "/api/v1/plans",

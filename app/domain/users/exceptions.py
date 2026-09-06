@@ -23,3 +23,11 @@ class UserAlreadyExistsError(UserDomainError):
 
 class UserNotFoundError(UserDomainError):
     """Raised when a user cannot be found."""
+
+
+class EmailNotVerifiedError(UserDomainError):
+    """Raised when a verified email is required for the operation."""
+
+
+class InvalidVerificationTokenError(UserDomainError):
+    """Raised when an email verification token is invalid or expired."""

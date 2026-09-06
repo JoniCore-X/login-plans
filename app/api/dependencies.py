@@ -8,6 +8,7 @@ from app.application.auth.services import (
     ChangePasswordService,
     LogoutService,
     RotateSessionService,
+    VerifyEmailService,
 )
 from app.application.plans.services import (
     ChangePlanStatusService,
@@ -74,6 +75,14 @@ def get_rotate_session_service(
     container = get_application_container(request)
 
     return container.create_rotate_session_service()
+
+
+def get_verify_email_service(
+    request: Request,
+) -> VerifyEmailService:
+    container = get_application_container(request)
+
+    return container.create_verify_email_service()
 
 
 def get_change_password_service(

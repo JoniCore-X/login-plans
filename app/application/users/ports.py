@@ -32,3 +32,10 @@ class UserRepository(ABC):
         user: User,
     ) -> None:
         raise NotImplementedError
+
+    @abstractmethod
+    async def get_by_verification_token_hash(
+        self,
+        token_hash: str,
+    ) -> User | None:
+        raise NotImplementedError

@@ -51,6 +51,15 @@ class FakeUserRepository(UserRepository):
                 self.users[index] = user
                 return
 
+    async def get_by_verification_token_hash(
+        self,
+        token_hash: str,
+    ):
+        for user in self.users:
+            if user.verification_token_hash == token_hash:
+                return user
+        return None
+
 
 class FakeSessionRepository(SessionRepository):
     def __init__(self) -> None:

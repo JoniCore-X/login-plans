@@ -17,6 +17,11 @@ class ChangePasswordCommand:
 
 
 @dataclass(frozen=True, slots=True)
+class VerifyEmailCommand:
+    token: str
+
+
+@dataclass(frozen=True, slots=True)
 class LoginUserCommand:
     email: str
     password: str

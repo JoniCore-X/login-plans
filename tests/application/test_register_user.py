@@ -21,6 +21,8 @@ from app.domain.users.value_objects import (
     UserId,
 )
 from tests.factories import FixedClock, registration_scenario_factory
+from tests.fakes.credentials import FakeSessionCredentialGenerator
+from tests.fakes.email import FakeEmailSender
 from tests.fakes.plans import FakePlanRepository
 
 
@@ -56,6 +58,15 @@ class FakeUserRepository(UserRepository):
             if existing.id == user.id:
                 self.users[index] = user
                 return
+
+    async def get_by_verification_token_hash(
+        self,
+        token_hash: str,
+    ):
+        for user in self.users:
+            if user.verification_token_hash == token_hash:
+                return user
+        return None
 
 
 class FakeSessionRepository(SessionRepository):
@@ -178,6 +189,8 @@ async def test_register_user() -> None:
         unit_of_work_factory=unit_of_work_factory,
         password_hasher=password_hasher,
         clock=clock,
+        credential_generator=FakeSessionCredentialGenerator(),
+        email_sender=FakeEmailSender(),
     )
 
     scenario = registration_scenario_factory(
@@ -212,6 +225,8 @@ async def test_register_user_rejects_duplicate_email() -> None:
         unit_of_work_factory=unit_of_work_factory,
         password_hasher=password_hasher,
         clock=FixedClock(),
+        credential_generator=FakeSessionCredentialGenerator(),
+        email_sender=FakeEmailSender(),
     )
 
     scenario = registration_scenario_factory(

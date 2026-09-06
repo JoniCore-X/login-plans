@@ -216,6 +216,36 @@ async def invalid_plan_description_handler(
     )
 
 
+async def email_not_verified_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=403,
+        content={
+            "error": {
+                "code": "EMAIL_NOT_VERIFIED",
+                "message": "Email must be verified to perform this action.",
+            },
+        },
+    )
+
+
+async def invalid_verification_token_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=400,
+        content={
+            "error": {
+                "code": "INVALID_VERIFICATION_TOKEN",
+                "message": "Invalid or expired verification token.",
+            },
+        },
+    )
+
+
 async def internal_error_handler(
     request: Request,
     exc: Exception,

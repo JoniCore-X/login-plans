@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.application.ports.email_sender import EmailSender
 from app.application.ports.health_checker import HealthChecker
 from app.application.ports.rate_limiter import RateLimiter
 from app.bootstrap.application import Application
@@ -13,6 +14,7 @@ from app.infrastructure.security import Argon2PasswordHasher
 from app.infrastructure.unit_of_work_factory import (
     SqlAlchemyUnitOfWorkFactory,
 )
+from tests.fakes.email import FakeEmailSender
 
 
 class TestApplicationFactory:
@@ -25,12 +27,14 @@ class TestApplicationFactory:
     ) -> None:
         self.settings = settings
         self.session_factory = session_factory
+        self.email_sender = FakeEmailSender()
 
     def create(
         self,
         *,
         rate_limiter: RateLimiter | None = None,
         health_checker: HealthChecker | None = None,
+        email_sender: EmailSender | None = None,
     ) -> FastAPI:
         unit_of_work_factory = SqlAlchemyUnitOfWorkFactory(
             self.session_factory,
@@ -43,6 +47,7 @@ class TestApplicationFactory:
             unit_of_work_factory=unit_of_work_factory,
             rate_limiter=rate_limiter,
             health_checker=health_checker,
+            email_sender=email_sender or self.email_sender,
         )
 
         application = Application(

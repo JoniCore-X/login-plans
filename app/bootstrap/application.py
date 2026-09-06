@@ -7,12 +7,14 @@ from fastapi import FastAPI
 from app.api.exception_handlers import (
     authentication_error_handler,
     domain_error_handler,
+    email_not_verified_handler,
     immutable_plan_handler,
     internal_error_handler,
     invalid_credentials_handler,
     invalid_email_handler,
     invalid_plan_description_handler,
     invalid_plan_name_handler,
+    invalid_verification_token_handler,
     plan_not_found_handler,
     rate_limit_exceeded_handler,
     stale_plan_handler,
@@ -43,6 +45,8 @@ from app.domain.plans.exceptions import (
     StalePlanError,
 )
 from app.domain.users.exceptions import (
+    EmailNotVerifiedError,
+    InvalidVerificationTokenError,
     UserAlreadyExistsError,
     UserNotFoundError,
 )
@@ -124,18 +128,18 @@ class Application:
         )
 
         application.add_exception_handler(
+            EmailNotVerifiedError,
+            email_not_verified_handler,
+        )
+
+        application.add_exception_handler(
+            InvalidVerificationTokenError,
+            invalid_verification_token_handler,
+        )
+
+        application.add_exception_handler(
             WeakPasswordError,
             weak_password_handler,
-        )
-
-        application.add_exception_handler(
-            AuthenticationError,
-            authentication_error_handler,
-        )
-
-        application.add_exception_handler(
-            RateLimitExceededError,
-            rate_limit_exceeded_handler,
         )
 
         application.add_exception_handler(
@@ -161,6 +165,16 @@ class Application:
         application.add_exception_handler(
             InvalidPlanDescriptionError,
             invalid_plan_description_handler,
+        )
+
+        application.add_exception_handler(
+            AuthenticationError,
+            authentication_error_handler,
+        )
+
+        application.add_exception_handler(
+            RateLimitExceededError,
+            rate_limit_exceeded_handler,
         )
 
         application.add_exception_handler(

@@ -9,7 +9,10 @@ from app.application.ports.session_credentials import (
 )
 from app.application.ports.unit_of_work import UnitOfWork
 from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
-from app.application.users.commands import ChangePasswordCommand
+from app.application.users.commands import (
+    ChangePasswordCommand,
+    VerifyEmailCommand,
+)
 from app.application.users.dto import AuthenticationDTO
 from app.application.users.exceptions import InvalidCredentialsError
 from app.domain.events import (
@@ -19,6 +22,7 @@ from app.domain.events import (
 )
 from app.domain.sessions.entities import Session
 from app.domain.sessions.value_objects import SessionCredential
+from app.domain.users.exceptions import InvalidVerificationTokenError
 from app.domain.users.value_objects import (
     PlainPassword,
     UserId,
@@ -242,6 +246,47 @@ class ChangePasswordService:
                             user_id=session.user_id.value,
                         ),
                     )
+
+
+class VerifyEmailService:
+    def __init__(
+        self,
+        unit_of_work_factory: UnitOfWorkFactory,
+        credential_generator: SessionCredentialGenerator,
+        clock: Clock,
+    ) -> None:
+        self.unit_of_work_factory = unit_of_work_factory
+        self.credential_generator = credential_generator
+        self.clock = clock
+
+    async def execute(
+        self,
+        command: VerifyEmailCommand,
+    ) -> None:
+        token = SessionCredential(command.token)
+        token_hash = self.credential_generator.hash(token)
+
+        unit_of_work = self.unit_of_work_factory.create()
+
+        async with unit_of_work:
+            user = await unit_of_work.users.get_by_verification_token_hash(
+                token_hash.value,
+            )
+
+            if user is None:
+                raise InvalidVerificationTokenError(
+                    "Invalid verification token.",
+                )
+
+            user.verify_email(
+                token_hash=token_hash.value,
+                now=self.clock.now(),
+            )
+
+            await unit_of_work.users.update(user)
+
+            for event in user.pull_events():
+                unit_of_work.collect_event(event)
 
 
 class RotateSessionService:

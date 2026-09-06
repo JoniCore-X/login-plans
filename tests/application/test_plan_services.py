@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 import pytest
 
 from app.application.plans.commands import (
@@ -23,6 +25,7 @@ from app.domain.plans.exceptions import (
     PlanNotFoundError,
     StalePlanError,
 )
+from app.domain.users.value_objects import UserId
 from tests.factories import FixedClock, plan_factory, user_factory
 from tests.fakes.plans import FakePlanRepository
 
@@ -31,8 +34,41 @@ class FakeClockUoW:
     pass
 
 
+class FakeUserRepository:
+    def __init__(self) -> None:
+        self.users: list = []
+
+    async def get_by_id(self, user_id: UserId):
+        for user in self.users:
+            if user.id == user_id:
+                return user
+        return None
+
+    async def get_by_email(self, email):
+        for user in self.users:
+            if user.email == email:
+                return user
+        return None
+
+    async def add(self, user) -> None:
+        self.users.append(user)
+
+    async def update(self, user) -> None:
+        for index, existing in enumerate(self.users):
+            if existing.id == user.id:
+                self.users[index] = user
+                return
+
+    async def get_by_verification_token_hash(self, token_hash: str):
+        for user in self.users:
+            if user.verification_token_hash == token_hash:
+                return user
+        return None
+
+
 class FakeUnitOfWork:
     def __init__(self) -> None:
+        self.users = FakeUserRepository()
         self.plans = FakePlanRepository()
         self.events: list = []
         self.committed = False
@@ -63,7 +99,8 @@ async def test_create_plan_assigns_owner() -> None:
         clock=FixedClock(),
     )
 
-    user = user_factory()
+    user = user_factory(email_verified_at=datetime.now(UTC))
+    uow_factory.unit_of_work.users.users.append(user)
 
     result = await service.execute(
         CreatePlanCommand(

@@ -2,6 +2,7 @@ from datetime import timedelta
 from uuid import uuid4
 
 from app.application.ports.clock import Clock
+from app.application.ports.email_sender import EmailSender
 from app.application.ports.password_hasher import PasswordHasher
 from app.application.ports.session_credentials import (
     SessionCredentialGenerator,
@@ -29,15 +30,22 @@ from app.domain.users.value_objects import Email, PlainPassword
 SESSION_DURATION = timedelta(hours=24)
 
 
+VERIFICATION_TOKEN_DURATION = timedelta(hours=24)
+
+
 class RegisterUserService:
     def __init__(
         self,
         unit_of_work_factory: UnitOfWorkFactory,
         password_hasher: PasswordHasher,
         clock: Clock,
+        credential_generator: SessionCredentialGenerator,
+        email_sender: EmailSender,
     ) -> None:
         self.unit_of_work_factory = unit_of_work_factory
         self.password_hasher = password_hasher
+        self.credential_generator = credential_generator
+        self.email_sender = email_sender
         self.clock = clock
 
     async def execute(
@@ -63,30 +71,48 @@ class RegisterUserService:
                 password,
             )
 
+            now = self.clock.now()
+
             user = User.create(
                 user_id=uuid4(),
                 email=email.value,
                 password_hash=password_hash.value,
-                now=self.clock.now(),
+                now=now,
+            )
+
+            verification_token = self.credential_generator.generate()
+
+            user.start_email_verification(
+                token_hash=self.credential_generator.hash(
+                    verification_token,
+                ).value,
+                expires_at=now + VERIFICATION_TOKEN_DURATION,
             )
 
             await unit_of_work.users.add(user)
 
             unit_of_work.collect_event(
                 UserRegistered(
-                    occurred_at=self.clock.now(),
+                    occurred_at=now,
                     user_id=user.id.value,
                     email=email.value,
                 ),
             )
 
-            return UserDTO(
+            result = UserDTO(
                 id=user.id.value,
                 email=user.email.value,
                 status=user.status,
                 created_at=user.created_at,
                 updated_at=user.updated_at,
             )
+
+        await self.email_sender.send_verification_email(
+            email.value,
+            verification_token.value,
+        )
+
+        return result
 
 
 class GetUserService:

@@ -23,6 +23,10 @@ from app.domain.plans.value_objects import (
     PlanId,
     PlanName,
 )
+from app.domain.users.exceptions import (
+    EmailNotVerifiedError,
+    UserNotFoundError,
+)
 from app.domain.users.value_objects import UserId
 
 
@@ -58,6 +62,18 @@ class CreatePlanService:
         unit_of_work = self.unit_of_work_factory.create()
 
         async with unit_of_work:
+            user = await unit_of_work.users.get_by_id(
+                UserId(command.user_id),
+            )
+
+            if user is None:
+                raise UserNotFoundError("User not found.")
+
+            if not user.is_email_verified:
+                raise EmailNotVerifiedError(
+                    "Email must be verified before creating plans.",
+                )
+
             plan = Plan.create(
                 plan_id=uuid4(),
                 user_id=UserId(command.user_id),

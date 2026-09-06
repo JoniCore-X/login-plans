@@ -14,6 +14,9 @@ def user_to_model(user: User) -> UserModel:
         email=user.email.value,
         password_hash=user.password_hash.value,
         status=user.status.value,
+        email_verified_at=user.email_verified_at,
+        verification_token_hash=user.verification_token_hash,
+        verification_token_expires_at=user.verification_token_expires_at,
         created_at=user.created_at,
         updated_at=user.updated_at,
     )
@@ -25,6 +28,9 @@ def user_to_domain(model: UserModel) -> User:
         email=Email(model.email),
         password_hash=PasswordHash(model.password_hash),
         status=UserStatus(model.status),
+        email_verified_at=model.email_verified_at,
+        verification_token_hash=model.verification_token_hash,
+        verification_token_expires_at=model.verification_token_expires_at,
         created_at=model.created_at,
         updated_at=model.updated_at,
     )

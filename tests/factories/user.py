@@ -18,6 +18,7 @@ def user_factory(
     status: UserStatus = UserStatus.ACTIVE,
     created_at: datetime | None = None,
     updated_at: datetime | None = None,
+    email_verified_at: datetime | None = None,
 ) -> User:
     now = datetime.now(UTC)
 
@@ -26,6 +27,7 @@ def user_factory(
         email=Email(email or f"{uuid4()}@example.com"),
         password_hash=PasswordHash(password_hash),
         status=status,
+        email_verified_at=email_verified_at,
         created_at=created_at or now,
         updated_at=updated_at or now,
     )

@@ -60,7 +60,27 @@ class PostgresUserRepository(UserRepository):
 
         model.password_hash = user.password_hash.value
         model.status = user.status.value
+        model.email_verified_at = user.email_verified_at
+        model.verification_token_hash = user.verification_token_hash
+        model.verification_token_expires_at = user.verification_token_expires_at
         model.updated_at = user.updated_at
+
+    async def get_by_verification_token_hash(
+        self,
+        token_hash: str,
+    ) -> User | None:
+        statement = select(UserModel).where(
+            UserModel.verification_token_hash == token_hash,
+        )
+
+        result = await self.session.execute(statement)
+
+        model = result.scalar_one_or_none()
+
+        if model is None:
+            return None
+
+        return user_to_domain(model)
 
     async def get_by_email(
         self,

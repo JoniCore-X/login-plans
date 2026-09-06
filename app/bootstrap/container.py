@@ -5,6 +5,7 @@ from app.application.auth.services import (
     ChangePasswordService,
     LogoutService,
     RotateSessionService,
+    VerifyEmailService,
 )
 from app.application.plans.services import (
     ChangePlanStatusService,
@@ -14,6 +15,7 @@ from app.application.plans.services import (
     UpdatePlanService,
 )
 from app.application.ports.clock import Clock
+from app.application.ports.email_sender import EmailSender
 from app.application.ports.health_checker import HealthChecker
 from app.application.ports.password_hasher import PasswordHasher
 from app.application.ports.rate_limiter import RateLimiter
@@ -29,6 +31,9 @@ from app.application.users.services import (
 from app.core.config import Settings
 from app.infrastructure.clock import SystemClock
 from app.infrastructure.database import Database
+from app.infrastructure.email.console_sender import (
+    ConsoleEmailSender,
+)
 from app.infrastructure.events.audit_log_dispatcher import (
     AuditLogDispatcher,
 )
@@ -59,6 +64,7 @@ class ApplicationContainer:
         credential_generator: SessionCredentialGenerator | None = None,
         rate_limiter: RateLimiter | None = None,
         health_checker: HealthChecker | None = None,
+        email_sender: EmailSender | None = None,
     ) -> None:
         self.settings = settings
         self.database = Database(settings)
@@ -89,6 +95,10 @@ class ApplicationContainer:
                 self.database.session_factory,
             )
 
+        if email_sender is None:
+            email_sender = ConsoleEmailSender()
+
+        self.email_sender = email_sender
         self.health_checker = health_checker
         self.unit_of_work_factory = unit_of_work_factory
         self.password_hasher = password_hasher
@@ -103,6 +113,8 @@ class ApplicationContainer:
             unit_of_work_factory=self.unit_of_work_factory,
             password_hasher=self.password_hasher,
             clock=self.clock,
+            credential_generator=self.credential_generator,
+            email_sender=self.email_sender,
         )
 
     def create_login_user_service(
@@ -137,6 +149,15 @@ class ApplicationContainer:
         self,
     ) -> AuthenticationService:
         return AuthenticationService(
+            unit_of_work_factory=self.unit_of_work_factory,
+            credential_generator=self.credential_generator,
+            clock=self.clock,
+        )
+
+    def create_verify_email_service(
+        self,
+    ) -> VerifyEmailService:
+        return VerifyEmailService(
             unit_of_work_factory=self.unit_of_work_factory,
             credential_generator=self.credential_generator,
             clock=self.clock,
