@@ -8,7 +8,7 @@ canon of the system.
 
 ```bash
 git clone <repo>
-cd login-plans
+cd {{cookiecutter.project_name}}
 python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt   # Windows
 # source .venv/bin/activate && pip install -r requirements.txt  # Linux/macOS
@@ -61,7 +61,7 @@ git push origin feature/your-feature
 - Application tests: fakes for ports
 - Infrastructure tests: real test database
 - API tests: httpx client via `tests/conftest.py` fixtures
-- Tests run against `login_plans_test` database (Postgres via docker compose)
+- Tests run against `{{cookiecutter.project_slug}}_test` database (Postgres via docker compose)
 
 ## Reporting bugs
 

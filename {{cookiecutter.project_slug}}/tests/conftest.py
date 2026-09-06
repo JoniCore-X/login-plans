@@ -30,21 +30,21 @@ from tests.factories import (
 WORKER_ID = os.environ.get("PYTEST_XDIST_WORKER")
 
 if WORKER_ID and WORKER_ID != "master":
-    TEST_DATABASE_NAME = f"login_plans_test_{WORKER_ID}"
+    TEST_DATABASE_NAME = f"{{cookiecutter.project_slug}}_test_{WORKER_ID}"
 else:
-    TEST_DATABASE_NAME = "login_plans_test"
+    TEST_DATABASE_NAME = "{{cookiecutter.project_slug}}_test"
 
 os.environ["APP_ENV"] = "test"
-os.environ["APP_NAME"] = "login-plans-test"
+os.environ["APP_NAME"] = "{{cookiecutter.project_name}}-test"
 os.environ["DEBUG"] = "false"
 os.environ["REDIS_URL"] = ""
 os.environ["DATABASE_URL"] = (
-    "postgresql+asyncpg://login_plans:login_plans_dev_password"
+    "postgresql+asyncpg://{{cookiecutter.project_slug}}:{{cookiecutter.project_slug}}_dev_password"
     f"@localhost:5432/{TEST_DATABASE_NAME}"
 )
 
 MAINTENANCE_DATABASE_URL = (
-    "postgresql+asyncpg://login_plans:login_plans_dev_password@localhost:5432/postgres"
+    "postgresql+asyncpg://{{cookiecutter.project_slug}}:{{cookiecutter.project_slug}}_dev_password@localhost:5432/postgres"
 )
 
 

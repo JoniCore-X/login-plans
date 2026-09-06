@@ -1,4 +1,4 @@
-# AGENTS.md — Canon del Sistema login_plans
+# AGENTS.md — Canon del Sistema {{cookiecutter.project_slug}}
 
 Documento de referencia para cualquier sesión futura (humana o AI). Contiene la
 arquitectura, las leyes inmutables, los comandos verificados, los patrones de
@@ -182,7 +182,7 @@ Todos verificados en este repo (Python 3.14, Windows + venv):
 .venv\Scripts\python -m ruff format --check .
 
 # Migraciones
-$env:DATABASE_URL='postgresql+asyncpg://login_plans:login_plans_dev_password@localhost:5432/login_plans'
+$env:DATABASE_URL='postgresql+asyncpg://{{cookiecutter.project_slug}}:{{cookiecutter.project_slug}}_dev_password@localhost:5432/{{cookiecutter.project_slug}}'
 .venv\Scripts\python -m alembic upgrade head
 .venv\Scripts\python -m alembic revision --autogenerate -m "descripcion"
 
@@ -200,7 +200,7 @@ curl -i http://localhost:8000/api/v1/auth/login ...  # mirar X-Request-ID + X-Tr
 ```
 
 Notas:
-- Los tests usan `login_plans_test` (+ `login_plans_test_gwN` por worker
+- Los tests usan `{{cookiecutter.project_slug}}_test` (+ `{{cookiecutter.project_slug}}_test_gwN` por worker
   con `-n auto`); el schema se crea via `create_all`, no por Alembic.
 - `pytest` lee `.env.test` (`APP_ENV=test`): tracing activo pero sin
   exporter (provider sin processor — spans y trace_ids válidos sin ruido).
@@ -279,9 +279,9 @@ OneDrive ha revertido/corrompido archivos 12+ veces durante el desarrollo
 ```powershell
 # 1. Cerrar IDE y terminales sobre el repo
 # 2. Mover
-Move-Item "C:\Users\jonie\OneDrive\Desktop\login_plans" "C:\dev\login_plans"
+Move-Item "C:\Users\jonie\OneDrive\Desktop\{{cookiecutter.project_slug}}" "C:\dev\{{cookiecutter.project_slug}}"
 # 3. Recrear venv (los paths absolutos quedan rotos tras el move)
-cd C:\dev\login_plans
+cd C:\dev\{{cookiecutter.project_slug}}
 python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt
 # 4. Verificar
@@ -363,7 +363,7 @@ audit_failures_total
    SELECT * FROM audit_logs WHERE request_id = 'abc123...';
 
 4. Jaeger UI (:16686):
-   service "login-plans-test" → Search → tag trace_id=def456...
+   service "{{cookiecutter.project_name}}-test" → Search → tag trace_id=def456...
    → timeline: HTTP → SQLAlchemy → redis.rate_limit_check →
      argon2.verify_password → audit.persist_events
 ```

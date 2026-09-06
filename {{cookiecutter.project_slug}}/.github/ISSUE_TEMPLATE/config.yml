@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Discussions
-    url: https://github.com/JoniCore-X/login-plans/discussions
+    url: https://github.com/JoniCore-X/{{cookiecutter.project_name}}/discussions
     about: General questions and ideas — prefer Discussions over Issues for open-ended topics.

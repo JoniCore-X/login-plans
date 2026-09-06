@@ -10,5 +10,5 @@ def test_test_database_is_not_the_development_database(
 ) -> None:
     database_url = test_settings.database_url.get_secret_value()
 
-    assert "login_plans_test" in database_url
+    assert "{{cookiecutter.project_slug}}_test" in database_url
     assert "localhost:5432" in database_url

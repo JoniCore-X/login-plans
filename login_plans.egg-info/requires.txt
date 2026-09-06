@@ -1,0 +1,15 @@
+alembic
+argon2-cffi
+asyncpg
+fastapi
+httpx
+pydantic-settings
+sqlalchemy[asyncio]
+uvicorn
+watchfiles
+
+[dev]
+pytest
+pytest-asyncio
+ruff
+mypy

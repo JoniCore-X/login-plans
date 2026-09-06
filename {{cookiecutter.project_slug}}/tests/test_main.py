@@ -14,4 +14,4 @@ def test_create_application(
     app = application.create()
 
     assert isinstance(app, FastAPI)
-    assert app.title == "login-plans-test"
+    assert app.title == "{{cookiecutter.project_name}}-test"

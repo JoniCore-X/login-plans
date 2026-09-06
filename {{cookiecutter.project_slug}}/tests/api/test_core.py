@@ -60,5 +60,5 @@ async def test_root_endpoint(
     response = await client.get("/api/v1/")
 
     assert response.status_code == 200
-    assert response.json()["application"] == "login-plans-test"
+    assert response.json()["application"] == "{{cookiecutter.project_name}}-test"
     assert response.json()["version"] == "v1"

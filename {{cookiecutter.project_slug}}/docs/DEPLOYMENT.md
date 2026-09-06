@@ -66,7 +66,7 @@ location / {
 
 ```yaml
 groups:
-- name: login_plans
+- name: {{cookiecutter.project_slug}}
   rules:
   - alert: HighErrorRate
     expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1

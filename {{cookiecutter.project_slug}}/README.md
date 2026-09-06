@@ -1,4 +1,8 @@
-# Login Plans API
+# {{cookiecutter.project_name}}
+
+Basado en la plantilla [login-plans](https://github.com/JoniCore-X/login-plans) (DDD + observabilidad + auth production-ready).
+
+**Autor:** {{cookiecutter.author_name}} <{{cookiecutter.email}}>
 
 Plantilla de autenticación y gestión de planes con arquitectura DDD production-ready.
 
@@ -23,7 +27,7 @@ Este proyecto es una **PLANTILLA** de alta calidad, no un producto terminado. In
 ```bash
 # 1. Clonar
 git clone <url-del-repo>
-cd login-plans
+cd {{cookiecutter.project_name}}
 
 # 2. Levantar stack completo (Postgres + Redis + App + Prometheus + Jaeger)
 docker compose up -d
@@ -149,3 +153,11 @@ Variables de entorno (ver `.env.example`):
 MIT
 
 
+
+## Próximas integraciones
+{% if cookiecutter.use_stripe == "y" %}
+- **Stripe:** agrega el agregado `Billing` siguiendo la receta de `docs/CUSTOMIZATION.md` (puerto `PaymentGateway` en application, adaptador Stripe en infrastructure). No hay código pre-generado — la arquitectura está lista para recibirlo.
+{% endif %}
+{% if cookiecutter.use_oauth == "y" %}
+- **OAuth (Google/GitHub/Apple):** extiende `IdentityProvider` con un adaptador OAuth — ver `docs/CUSTOMIZATION.md`. El dominio ya soporta `provider_id` externo.
+{% endif %}

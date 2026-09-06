@@ -14,9 +14,9 @@ jobs:
       postgres:
         image: postgres:17-alpine
         env:
-          POSTGRES_USER: login_plans
-          POSTGRES_PASSWORD: login_plans_dev_password
-          POSTGRES_DB: login_plans_test
+          POSTGRES_USER: {{cookiecutter.project_slug}}
+          POSTGRES_PASSWORD: {{cookiecutter.project_slug}}_dev_password
+          POSTGRES_DB: {{cookiecutter.project_slug}}_test
         ports:
           - 5432:5432
         options: >-
@@ -50,12 +50,12 @@ jobs:
 
       - name: Run Migrations
         env:
-          DATABASE_URL: postgresql+asyncpg://login_plans:login_plans_dev_password@localhost:5432/login_plans_test
+          DATABASE_URL: postgresql+asyncpg://{{cookiecutter.project_slug}}:{{cookiecutter.project_slug}}_dev_password@localhost:5432/{{cookiecutter.project_slug}}_test
         run: alembic upgrade head
 
       - name: Run Tests (Pytest)
         env:
-          DATABASE_URL: postgresql+asyncpg://login_plans:login_plans_dev_password@localhost:5432/login_plans_test
+          DATABASE_URL: postgresql+asyncpg://{{cookiecutter.project_slug}}:{{cookiecutter.project_slug}}_dev_password@localhost:5432/{{cookiecutter.project_slug}}_test
         run: pytest -q --cov=app --cov-report=term-missing
 
   docker-build:
@@ -67,4 +67,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Docker Image
-        run: docker build -t login-plans:ci .
+        run: docker build -t {{cookiecutter.project_name}}:ci .
