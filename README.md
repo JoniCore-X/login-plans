@@ -58,43 +58,39 @@ El script registra un usuario, extrae el `VERIFICATION TOKEN` de los logs, verif
 > **Nota:** la contraseña debe tener mínimo 12 caracteres con mezcla de caracteres (política de seguridad del dominio).
 ## Desarrollo local (API en tu máquina, datos en Docker)
 
-Para modificar el código con hot reload:
+Para modificar el código con hot reload — setup completo en un solo comando:
 
-```bash
-# 1. Entorno virtual
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1        # Windows
-source .venv/bin/activate            # Linux/macOS
-
-# 2. Dependencias (incluye pytest, mypy, ruff, alembic)
-pip install -r requirements.txt
-
-# 3. Configuración — las credenciales dev ya coinciden con docker-compose.yml
-cp .env.example .env                 # Windows: copy .env.example .env
-
-# 4. Solo las bases de datos en Docker
-docker compose up -d postgres redis
-
-# 5. Migraciones
-alembic upgrade head
-
-# 6. API local con hot reload
-uvicorn app.main:app --reload --port 8000
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\dev_setup.ps1
 ```
 
-`uvicorn` arranca en http://localhost:8000 con `--reload` — los cambios se
-reflejan al guardar. Health: `curl http://localhost:8000/api/v1/health`.
+```bash
+bash scripts/dev_setup.sh
+```
+
+El script crea el venv, instala dependencias, copia `.env`, levanta
+Postgres+Redis en Docker y corre las migraciones. Luego arranca la API:
+
+```powershell
+.\.venv\Scripts\uvicorn app.main:app --reload --port 8000
+```
+
+```bash
+./.venv/bin/uvicorn app.main:app --reload --port 8000
+```
+
+Requisitos: Python 3.12+, Docker (solo para Postgres/Redis), pip.
+> **Consejo Windows:** ejecuta los comandos línea por línea, o usa los scripts
+> — pegar bloques enteros en `cmd.exe` puede perder los saltos de línea.
 
 Tests:
 
-```bash
+```text
 pytest -q          # serial
 pytest -n auto -q  # paralelo (pytest-xdist)
 mypy app
 ruff check .
 ```
-
-Requisitos: Python 3.12+, Docker (solo para Postgres/Redis), pip.
 ## Nuevo proyecto desde cero (Cookiecutter)
 
 Si estás empezando un SaaS nuevo y quieres esta arquitectura desde el día 1:
@@ -263,6 +259,7 @@ Variables de entorno (ver `.env.example`):
 ## Licencia
 
 MIT
+
 
 
 
