@@ -91,7 +91,7 @@ pytest -q          # serial
 pytest -n auto -q  # paralelo (pytest-xdist)
 mypy app
 ruff check .
-``
+```
 ## Nuevo proyecto desde cero (Cookiecutter)
 
 Si estás empezando un SaaS nuevo y quieres esta arquitectura desde el día 1:
