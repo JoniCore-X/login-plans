@@ -123,6 +123,19 @@ docker compose up -d
 
 Genera el proyecto completo renombrado (nombre, contenedores Docker, bases
 de datos, `pyproject.toml`, `.env.example`, tests) listo para desarrollar.
+## CLI `login-plans` (próximamente)
+
+Experiencia todo-en-uno en desarrollo activo:
+
+```bash
+pipx install login-plans-cli     # próximamente
+
+lp init mi-saas                  # Genera proyecto (cookiecutter por dentro)
+lp up                            # Stack completo (Docker por dentro)
+lp deploy --env prod             # Deploy guiado a producción
+```
+
+Mientras tanto, los tres métodos anteriores cubren el mismo flujo.
 ## Observabilidad
 
 | Servicio | URL | Uso |
