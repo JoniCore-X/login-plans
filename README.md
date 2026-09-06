@@ -1,40 +1,103 @@
-# Login Plans
+# Login Plans API
 
-Sistema avanzado de autenticación y gestión de planes construido con Python.
+Plantilla de autenticación y gestión de planes con arquitectura DDD production-ready.
 
-## Arquitectura
+## Antes de usar
 
-El proyecto evolucionará progresivamente hacia una arquitectura basada en:
+Este proyecto es una **PLANTILLA** de alta calidad, no un producto terminado. Incluye:
 
-- Clean Architecture
-- Domain-Driven Design
-- CQRS
-- Domain Events
-- Event-Driven Architecture
-- PostgreSQL
-- Redis
-- Observabilidad
-- Testing
-- Seguridad avanzada
+- Motor de autenticación completo (Argon2, rate limiting distribuido, replay protection)
+- Gestión de Planes con ownership, estados y concurrencia optimista
+- Observabilidad completa (logs JSON + métricas Prometheus + traces OpenTelemetry)
+- 200 tests passing, Docker Compose, CI/CD con GitHub Actions
+- Arquitectura DDD estricta con tests de fronteras entre capas
 
-## Testing Strategy
+**Requiere configuración de proveedor de email para producción:**
 
-The project uses multiple testing layers:
+- Por defecto usa `ConsoleEmailSender` — imprime el token de verificación en los logs de la app
+- Para producción, configura `RESEND_API_KEY` en `.env` (el adaptador ya está implementado)
+- Ver [docs/CUSTOMIZATION.md](docs/CUSTOMIZATION.md) para otros proveedores (SendGrid, SES)
 
-- Unit tests
-- Application tests
-- Infrastructure integration tests
-- API tests
-- Architecture tests
-- Regression tests
-- Coverage analysis
-- Mutation testing
+## Quick Start (5 minutos)
 
-Critical existing behavior is protected by regression tests.
+```bash
+# 1. Clonar
+git clone <url-del-repo>
+cd login-plans
 
-A change is not considered complete if it:
+# 2. Levantar stack completo (Postgres + Redis + App + Prometheus + Jaeger)
+docker compose up -d
 
-1. breaks existing tests;
-2. violates architectural boundaries;
-3. decreases enforced coverage;
-4. breaks critical regression scenarios.
+# 3. Registrar un usuario
+curl -X POST http://localhost:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "Test123456!"}'
+
+# 4. Obtener el token de verificación de los logs
+docker compose logs app | Select-String "VERIFICATION TOKEN"   # PowerShell
+docker compose logs app | grep "VERIFICATION TOKEN"            # bash
+
+# 5. Verificar el email
+curl -X POST http://localhost:8000/api/v1/auth/verify-email \
+  -H "Content-Type: application/json" \
+  -d '{"token": "TOKEN_OBTENIDO_DE_LOGS"}'
+
+# 6. Login
+curl -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "Test123456!"}'
+# → {"credential": "...", "expires_at": "..."}
+
+# 7. Crear un plan (requiere email verificado)
+curl -X POST http://localhost:8000/api/v1/plans \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <credential>" \
+  -d '{"name": "Mi primer plan"}'
+```
+
+## Observabilidad
+
+| Servicio | URL | Uso |
+|---|---|---|
+| API Docs | http://localhost:8000/docs | Swagger UI |
+| Health | http://localhost:8000/api/v1/health | DB check real |
+| Métricas | http://localhost:8000/metrics | Prometheus endpoint |
+| Prometheus | http://localhost:9090 | Queries y alertas |
+| Jaeger | http://localhost:16686 | Traces distribuidos |
+
+Cada response incluye `X-Request-ID` y `X-Trace-ID` para correlación
+logs ↔ métricas ↔ traces.
+
+## Documentación
+
+- [AGENTS.md](AGENTS.md) — Canon del sistema (arquitectura, leyes inmutables, patrones)
+- [docs/CUSTOMIZATION.md](docs/CUSTOMIZATION.md) — Cómo adaptar a tu proyecto
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — Checklist de producción
+
+## Stack Técnico
+
+- Python 3.14 + FastAPI + SQLAlchemy 2 async
+- PostgreSQL + Redis (rate limiting compartido, Lua atómico)
+- Argon2 (password hashing)
+- OpenTelemetry → Jaeger, Prometheus → métricas
+- structlog (logs JSON en prod, coloreados en dev)
+- Docker Compose + GitHub Actions CI
+
+## Configuración
+
+Variables de entorno (ver `.env.example`):
+
+| Variable | Default | Uso |
+|---|---|---|
+| `DATABASE_URL` | — | Postgres connection string |
+| `REDIS_URL` | — (opcional) | Rate limiting distribuido; sin ella usa in-memory |
+| `RESEND_API_KEY` | — (opcional) | Emails reales vía Resend; sin ella usa consola |
+| `EMAIL_FROM` | `noreply@example.com` | Remitente de emails |
+| `OTLP_ENDPOINT` | — (opcional) | Traces → Jaeger/Tempo en producción |
+| `ENABLE_TRACING` | `true` | Desactivar tracing |
+| `CORS_ORIGINS` | localhost dev | Orígenes permitidos (coma-separados) |
+| `APP_ENV` | `development` | `development` / `test` / `production` |
+
+## Licencia
+
+MIT

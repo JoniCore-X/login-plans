@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     redis_url: str | None = None
     otlp_endpoint: str | None = None
     enable_tracing: bool = True
+    resend_api_key: str | None = None
+    email_from: str = "noreply@example.com"
+    email_verify_base_url: str = "http://localhost:8000/api/v1/auth/verify-email"
 
     @property
     def allowed_origins(self) -> list[str]:

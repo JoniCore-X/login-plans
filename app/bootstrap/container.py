@@ -36,6 +36,9 @@ from app.infrastructure.database import Database
 from app.infrastructure.email.console_sender import (
     ConsoleEmailSender,
 )
+from app.infrastructure.email.resend_sender import (
+    ResendEmailSender,
+)
 from app.infrastructure.events.audit_log_dispatcher import (
     AuditLogDispatcher,
 )
@@ -118,7 +121,16 @@ class ApplicationContainer:
             )
 
         if email_sender is None:
-            email_sender = ConsoleEmailSender()
+            if settings.resend_api_key:
+                email_sender = ResendEmailSender(
+                    api_key=settings.resend_api_key,
+                    from_email=settings.email_from,
+                    verify_base_url=settings.email_verify_base_url,
+                )
+            else:
+                email_sender = ConsoleEmailSender(
+                    is_production=settings.is_production,
+                )
 
         self.email_sender = email_sender
         self.health_checker = health_checker
