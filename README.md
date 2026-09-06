@@ -48,6 +48,8 @@ curl -X POST http://localhost:8000/api/v1/auth/register -H "Content-Type: applic
 docker compose logs app | grep "VERIFICATION TOKEN"
 ```
 
+> **Nota Windows:** los comandos curl usan comillas simples ('...'), válidas en bash y PowerShell. En cmd.exe usa comillas dobles y escapa las internas: -d \"{\"email\":\"x@y.com\"...}\". Recomendado: PowerShell o Git Bash.
+
 En Windows PowerShell, busca el token con:
 
 ```powershell
@@ -268,6 +270,7 @@ Variables de entorno (ver `.env.example`):
 ## Licencia
 
 MIT
+
 
 
 
