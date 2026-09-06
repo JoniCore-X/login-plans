@@ -62,6 +62,45 @@ curl -X POST http://localhost:8000/api/v1/plans \
   -d '{"name": "Mi primer plan"}'
 ```
 
+## Desarrollo local (API en tu máquina, datos en Docker)
+
+Para modificar el código con hot reload:
+
+```bash
+# 1. Entorno virtual
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1        # Windows
+source .venv/bin/activate            # Linux/macOS
+
+# 2. Dependencias (incluye pytest, mypy, ruff, alembic)
+pip install -r requirements.txt
+
+# 3. Configuración — las credenciales dev ya coinciden con docker-compose.yml
+cp .env.example .env                 # Windows: copy .env.example .env
+
+# 4. Solo las bases de datos en Docker
+docker compose up -d postgres redis
+
+# 5. Migraciones
+alembic upgrade head
+
+# 6. API local con hot reload
+uvicorn app.main:app --reload --port 8000
+```
+
+`uvicorn` arranca en http://localhost:8000 con `--reload` — los cambios se
+reflejan al guardar. Health: `curl http://localhost:8000/api/v1/health`.
+
+Tests:
+
+```bash
+pytest -q          # serial
+pytest -n auto -q  # paralelo (pytest-xdist)
+mypy app
+ruff check .
+```
+
+Requisitos: Python 3.12+, Docker (solo para Postgres/Redis), pip.
 ## Observabilidad
 
 | Servicio | URL | Uso |
@@ -108,4 +147,5 @@ Variables de entorno (ver `.env.example`):
 ## Licencia
 
 MIT
+
 
