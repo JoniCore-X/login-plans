@@ -20,48 +20,47 @@ Este proyecto es una **PLANTILLA** de alta calidad, no un producto terminado. In
 
 ## Quick Start (5 minutos)
 
+Clona y levanta el stack completo (Postgres + Redis + App + Prometheus + Jaeger). La app corre las migraciones automáticamente al arrancar:
+
 ```bash
-# 1. Clonar
-git clone <url-del-repo>
+git clone https://github.com/JoniCore-X/login-plans.git
 cd login-plans
-
-# 2. Levantar stack completo (Postgres + Redis + App + Prometheus + Jaeger)
 docker compose up -d
-
-# La app corre las migraciones automáticamente al arrancar.
-# Espera ~30s hasta que `docker compose ps` muestre todo healthy.
-
-# 3. Verificar
-curl http://localhost:8000/api/v1/health
-# {"status":"healthy","components":{"database":"connected","redis":"connected"}}
-
-# 4. Registrar un usuario
-curl -X POST http://localhost:8000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "password": "Test123456!"}'
-
-# 5. Obtener el token de verificación de los logs
-docker compose logs app | Select-String "VERIFICATION TOKEN"   # PowerShell
-docker compose logs app | grep "VERIFICATION TOKEN"            # bash
-
-# 6. Verificar el email
-curl -X POST http://localhost:8000/api/v1/auth/verify-email \
-  -H "Content-Type: application/json" \
-  -d '{"token": "TOKEN_OBTENIDO_DE_LOGS"}'
-
-# 7. Login
-curl -X POST http://localhost:8000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "password": "Test123456!"}'
-# → {"credential": "...", "expires_at": "..."}
-
-# 8. Crear un plan (requiere email verificado)
-curl -X POST http://localhost:8000/api/v1/plans \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <credential>" \
-  -d '{"name": "Mi primer plan"}'
+docker compose ps
 ```
 
+Espera ~30 segundos hasta que `docker compose ps` muestre todo `healthy`. Verifica:
+
+```bash
+curl http://localhost:8000/api/v1/health
+```
+
+Resultado esperado:
+
+```json
+{"status":"healthy","components":{"database":"connected","redis":"connected"}}
+```
+
+Registra un usuario y obtén el token de verificación de los logs (el `ConsoleEmailSender` lo imprime destacado):
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/register -H "Content-Type: application/json" -d "{\"email\": \"test@example.com\", \"password\": \"Test123456!\"}"
+docker compose logs app | grep "VERIFICATION TOKEN"
+```
+
+En Windows PowerShell, busca el token con:
+
+```powershell
+docker compose logs app | Select-String "VERIFICATION TOKEN"
+```
+
+Verifica el email, haz login y crea tu primer plan (sustituye `TOKEN` y `CREDENTIAL` por los valores obtenidos):
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/verify-email -H "Content-Type: application/json" -d "{\"token\": \"TOKEN\"}"
+curl -X POST http://localhost:8000/api/v1/auth/login -H "Content-Type: application/json" -d "{\"email\": \"test@example.com\", \"password\": \"Test123456!\"}"
+curl -X POST http://localhost:8000/api/v1/plans -H "Content-Type: application/json" -H "Authorization: Bearer CREDENTIAL" -d "{\"name\": \"Mi primer plan\"}"
+```
 ## Desarrollo local (API en tu máquina, datos en Docker)
 
 Para modificar el código con hot reload:
@@ -171,19 +170,13 @@ inyectar sobre tu infraestructura existente.
 Independientemente del método:
 
 ```bash
-# 1. Health (db + redis conectados)
 curl http://localhost:8000/api/v1/health
-# → {"status":"healthy","components":{"database":"connected","redis":"connected"}}
-
-# 2. Registro
-curl -X POST http://localhost:8000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"verify@example.com","password":"Strong-password-123!"}'
-# → 201
-
-# 3. Token en logs (modo consola) → verificar email → login → crear plan
-#    (ver Quick Start pasos 5-8)
+curl -X POST http://localhost:8000/api/v1/auth/register -H "Content-Type: application/json" -d "{\"email\":\"verify@example.com\",\"password\":\"Strong-password-123!\"}"
 ```
+
+Health debe responder `{"status":"healthy",...}` y el registro `201`.
+Luego: token en logs → verificar email → login → crear plan
+(pasos completos en el Quick Start).
 
 Si todos devuelven 200/201/204, la instalación es correcta.
 
@@ -275,5 +268,7 @@ Variables de entorno (ver `.env.example`):
 ## Licencia
 
 MIT
+
+
 
 
