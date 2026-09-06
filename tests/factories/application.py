@@ -6,6 +6,9 @@ from app.application.ports.rate_limiter import RateLimiter
 from app.bootstrap.application import Application
 from app.bootstrap.container import ApplicationContainer
 from app.core.config import Settings
+from app.infrastructure.events.audit_log_dispatcher import (
+    AuditLogDispatcher,
+)
 from app.infrastructure.security import Argon2PasswordHasher
 from app.infrastructure.unit_of_work_factory import (
     SqlAlchemyUnitOfWorkFactory,
@@ -31,6 +34,7 @@ class TestApplicationFactory:
     ) -> FastAPI:
         unit_of_work_factory = SqlAlchemyUnitOfWorkFactory(
             self.session_factory,
+            AuditLogDispatcher(self.session_factory),
         )
 
         container = ApplicationContainer(

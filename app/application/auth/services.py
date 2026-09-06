@@ -9,6 +9,11 @@ from app.application.ports.session_credentials import (
 from app.application.ports.unit_of_work import UnitOfWork
 from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
 from app.application.users.dto import AuthenticationDTO
+from app.domain.events import (
+    ReplayAttackDetected,
+    SessionRevoked,
+    SessionRotated,
+)
 from app.domain.sessions.entities import Session
 from app.domain.sessions.value_objects import SessionCredential
 
@@ -51,6 +56,15 @@ class AuthenticationService:
                 )
 
             if session.was_rotated():
+                unit_of_work.collect_event(
+                    ReplayAttackDetected(
+                        occurred_at=self.clock.now(),
+                        session_id=session.id.value,
+                        family_id=session.family_id,
+                        user_id=session.user_id.value,
+                    ),
+                )
+
                 await self._revoke_family(
                     unit_of_work,
                     session,
@@ -137,6 +151,14 @@ class LogoutService:
 
             await unit_of_work.sessions.revoke(session)
 
+            unit_of_work.collect_event(
+                SessionRevoked(
+                    occurred_at=now,
+                    session_id=session.id.value,
+                    user_id=session.user_id.value,
+                ),
+            )
+
 
 class RotateSessionService:
     def __init__(
@@ -178,6 +200,15 @@ class RotateSessionService:
                 )
 
             if session.was_rotated():
+                unit_of_work.collect_event(
+                    ReplayAttackDetected(
+                        occurred_at=now,
+                        session_id=session.id.value,
+                        family_id=session.family_id,
+                        user_id=session.user_id.value,
+                    ),
+                )
+
                 await self._revoke_family(
                     unit_of_work,
                     session,
@@ -214,6 +245,15 @@ class RotateSessionService:
                 )
 
                 await unit_of_work.sessions.add(new_session)
+
+                unit_of_work.collect_event(
+                    SessionRotated(
+                        occurred_at=now,
+                        session_id=new_session.id.value,
+                        family_id=session.family_id,
+                        user_id=session.user_id.value,
+                    ),
+                )
 
                 return AuthenticationDTO(
                     user_id=user.id.value,

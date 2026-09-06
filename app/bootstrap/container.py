@@ -28,6 +28,9 @@ from app.application.users.services import (
 from app.core.config import Settings
 from app.infrastructure.clock import SystemClock
 from app.infrastructure.database import Database
+from app.infrastructure.events.audit_log_dispatcher import (
+    AuditLogDispatcher,
+)
 from app.infrastructure.persistence.postgres_health import (
     PostgresHealthChecker,
 )
@@ -62,6 +65,9 @@ class ApplicationContainer:
         if unit_of_work_factory is None:
             unit_of_work_factory = SqlAlchemyUnitOfWorkFactory(
                 self.database.session_factory,
+                AuditLogDispatcher(
+                    self.database.session_factory,
+                ),
             )
 
         if clock is None:

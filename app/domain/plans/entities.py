@@ -1,7 +1,14 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID
 
+from app.domain.events import (
+    DomainEvent,
+    PlanArchived,
+    PlanCreated,
+    PlanPublished,
+    PlanUpdated,
+)
 from app.domain.plans.enums import PlanStatus
 from app.domain.plans.exceptions import (
     ImmutablePlanError,
@@ -25,6 +32,10 @@ class Plan:
     version: int
     created_at: datetime
     updated_at: datetime
+    _events: list[DomainEvent] = field(
+        default_factory=list,
+        repr=False,
+    )
 
     @classmethod
     def create(
@@ -36,7 +47,7 @@ class Plan:
         description: PlanDescription,
         now: datetime,
     ) -> "Plan":
-        return cls(
+        plan = cls(
             id=PlanId(plan_id),
             user_id=user_id,
             name=name,
@@ -46,6 +57,25 @@ class Plan:
             created_at=now,
             updated_at=now,
         )
+
+        plan.register_event(
+            PlanCreated(
+                occurred_at=now,
+                plan_id=plan_id,
+                user_id=user_id.value,
+                name=name.value,
+            ),
+        )
+
+        return plan
+
+    def register_event(self, event: DomainEvent) -> None:
+        self._events.append(event)
+
+    def pull_events(self) -> list[DomainEvent]:
+        events = self._events
+        self._events = []
+        return events
 
     def update(
         self,
@@ -68,6 +98,14 @@ class Plan:
         self.version += 1
         self.updated_at = now
 
+        self.register_event(
+            PlanUpdated(
+                occurred_at=now,
+                plan_id=self.id.value,
+                user_id=self.user_id.value,
+            ),
+        )
+
     def publish(self, *, now: datetime) -> None:
         if self.status == PlanStatus.ARCHIVED:
             raise ImmutablePlanError(
@@ -83,6 +121,14 @@ class Plan:
         self.version += 1
         self.updated_at = now
 
+        self.register_event(
+            PlanPublished(
+                occurred_at=now,
+                plan_id=self.id.value,
+                user_id=self.user_id.value,
+            ),
+        )
+
     def archive(self, *, now: datetime) -> None:
         if self.status == PlanStatus.ARCHIVED:
             raise InvalidPlanStateTransition(
@@ -92,3 +138,11 @@ class Plan:
         self.status = PlanStatus.ARCHIVED
         self.version += 1
         self.updated_at = now
+
+        self.register_event(
+            PlanArchived(
+                occurred_at=now,
+                plan_id=self.id.value,
+                user_id=self.user_id.value,
+            ),
+        )

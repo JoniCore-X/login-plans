@@ -34,7 +34,11 @@ class FakeClockUoW:
 class FakeUnitOfWork:
     def __init__(self) -> None:
         self.plans = FakePlanRepository()
+        self.events: list = []
         self.committed = False
+
+    def collect_event(self, event: object) -> None:
+        self.events.append(event)
 
     async def __aenter__(self) -> "FakeUnitOfWork":
         return self

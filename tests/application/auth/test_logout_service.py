@@ -97,8 +97,12 @@ class FakeUnitOfWork(UnitOfWork):
         self.users = FakeUserRepository()
         self.sessions = FakeSessionRepository()
         self.plans = FakePlanRepository()
+        self.events: list = []
         self.committed = False
         self.rolled_back = False
+
+    def collect_event(self, event: object) -> None:
+        self.events.append(event)
 
     async def __aenter__(self) -> "FakeUnitOfWork":
         return self

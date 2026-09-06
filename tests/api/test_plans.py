@@ -3,6 +3,9 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.infrastructure.persistence.models.audit_log import (
+    AuditLogModel,
+)
 from app.infrastructure.persistence.models.plan import PlanModel
 
 
@@ -96,6 +99,22 @@ async def test_full_plan_lifecycle(
     stored = result.scalar_one()
     assert stored.status == "archived"
     assert stored.version == 4
+
+    # Audit trail: PlanCreated → PlanUpdated → PlanPublished → PlanArchived
+    audit = await test_session.execute(
+        select(AuditLogModel).order_by(AuditLogModel.occurred_at),
+    )
+    events = [row.event_type for row in audit.scalars().all()]
+
+    plan_events = [e for e in events if e.startswith("Plan")]
+
+    assert "UserRegistered" in events
+    assert plan_events == [
+        "PlanCreated",
+        "PlanUpdated",
+        "PlanPublished",
+        "PlanArchived",
+    ]
 
 
 @pytest.mark.asyncio

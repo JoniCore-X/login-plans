@@ -17,6 +17,7 @@ from app.application.users.exceptions import (
     UserCannotAuthenticateError,
 )
 from app.application.users.queries import GetUserQuery
+from app.domain.events import UserRegistered
 from app.domain.sessions.entities import Session
 from app.domain.users.entities import User
 from app.domain.users.exceptions import (
@@ -70,6 +71,14 @@ class RegisterUserService:
             )
 
             await unit_of_work.users.add(user)
+
+            unit_of_work.collect_event(
+                UserRegistered(
+                    occurred_at=self.clock.now(),
+                    user_id=user.id.value,
+                    email=email.value,
+                ),
+            )
 
             return UserDTO(
                 id=user.id.value,

@@ -3,6 +3,9 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.infrastructure.persistence.models.audit_log import (
+    AuditLogModel,
+)
 from app.infrastructure.persistence.models.session import SessionModel
 
 
@@ -141,6 +144,13 @@ async def test_replay_of_old_credential_revokes_entire_family(
     )
 
     assert me_response.status_code == 401
+
+    audit = await test_session.execute(
+        select(AuditLogModel),
+    )
+    events = [row.event_type for row in audit.scalars().all()]
+
+    assert "ReplayAttackDetected" in events
 
 
 @pytest.mark.asyncio

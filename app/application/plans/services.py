@@ -68,6 +68,9 @@ class CreatePlanService:
 
             await unit_of_work.plans.add(plan)
 
+            for event in plan.pull_events():
+                unit_of_work.collect_event(event)
+
             return plan_to_dto(plan)
 
 
@@ -122,6 +125,9 @@ class UpdatePlanService:
                     "Plan was modified by another request.",
                 )
 
+            for event in plan.pull_events():
+                unit_of_work.collect_event(event)
+
             return plan_to_dto(plan)
 
 
@@ -162,6 +168,9 @@ class ChangePlanStatusService:
                 raise StalePlanError(
                     "Plan was modified by another request.",
                 )
+
+            for event in plan.pull_events():
+                unit_of_work.collect_event(event)
 
             return plan_to_dto(plan)
 
