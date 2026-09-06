@@ -27,5 +27,38 @@ services:
       retries: 5
 
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: login_plans_app
+    restart: unless-stopped
+
+    environment:
+      DATABASE_URL: postgresql+asyncpg://login_plans:login_plans_dev_password@postgres:5432/login_plans
+      APP_ENV: production
+      DEBUG: "false"
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8000/api/v1/health"
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+
 volumes:
   postgres_data:

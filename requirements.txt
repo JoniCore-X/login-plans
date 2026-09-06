@@ -18,8 +18,6 @@ httpx==0.28.1
 idna==3.19
 iniconfig==2.3.0
 librt==0.15.0
-# Editable Git install with no remote (login-plans==0.1.0)
--e c:\users\jonie\onedrive\desktop\login_plans
 Mako==1.4.1
 MarkupSafe==3.0.3
 mypy==2.3.1
