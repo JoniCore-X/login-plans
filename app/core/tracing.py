@@ -38,7 +38,7 @@ def setup_tracing(settings: Settings) -> TracerProvider:
 
     provider = TracerProvider(resource=resource)
 
-    if settings.is_production and settings.otlp_endpoint:
+    if settings.otlp_endpoint:
         exporter: SpanExporter | None = OTLPSpanExporter(
             endpoint=settings.otlp_endpoint,
         )

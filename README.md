@@ -28,27 +28,34 @@ cd login-plans
 # 2. Levantar stack completo (Postgres + Redis + App + Prometheus + Jaeger)
 docker compose up -d
 
-# 3. Registrar un usuario
+# La app corre las migraciones automáticamente al arrancar.
+# Espera ~30s hasta que `docker compose ps` muestre todo healthy.
+
+# 3. Verificar
+curl http://localhost:8000/api/v1/health
+# {"status":"healthy","components":{"database":"connected","redis":"connected"}}
+
+# 4. Registrar un usuario
 curl -X POST http://localhost:8000/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email": "test@example.com", "password": "Test123456!"}'
 
-# 4. Obtener el token de verificación de los logs
+# 5. Obtener el token de verificación de los logs
 docker compose logs app | Select-String "VERIFICATION TOKEN"   # PowerShell
 docker compose logs app | grep "VERIFICATION TOKEN"            # bash
 
-# 5. Verificar el email
+# 6. Verificar el email
 curl -X POST http://localhost:8000/api/v1/auth/verify-email \
   -H "Content-Type: application/json" \
   -d '{"token": "TOKEN_OBTENIDO_DE_LOGS"}'
 
-# 6. Login
+# 7. Login
 curl -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "test@example.com", "password": "Test123456!"}'
 # → {"credential": "...", "expires_at": "..."}
 
-# 7. Crear un plan (requiere email verificado)
+# 8. Crear un plan (requiere email verificado)
 curl -X POST http://localhost:8000/api/v1/plans \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <credential>" \
@@ -101,3 +108,4 @@ Variables de entorno (ver `.env.example`):
 ## Licencia
 
 MIT
+

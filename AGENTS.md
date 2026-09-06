@@ -194,7 +194,7 @@ docker compose build app                    # rebuild tras cambios de código
 docker compose down -v                      # limpieza total (destructivo)
 
 # Health y observabilidad
-curl http://localhost:8000/api/v1/health    # {"status":"healthy","components":{"database":"connected"}}
+curl http://localhost:8000/api/v1/health    # {"status":"healthy","components":{"database":"connected","redis":"connected"}}
 curl http://localhost:8000/metrics          # métricas Prometheus
 curl -i http://localhost:8000/api/v1/auth/login ...  # mirar X-Request-ID + X-Trace-ID
 ```
@@ -394,3 +394,4 @@ Typecheck: mypy app → 0 issues (116 archivos)
 Lint:      ruff check + format → clean
 Commit de referencia: ce00879 (OpenTelemetry + Jaeger)
 ```
+

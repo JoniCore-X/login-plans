@@ -62,7 +62,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       OTLP_ENDPOINT: http://jaeger:4317
       ENABLE_TRACING: "true"
-      APP_ENV: production
+      APP_ENV: development
       DEBUG: "false"
 
     ports:

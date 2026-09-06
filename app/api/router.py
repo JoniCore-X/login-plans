@@ -1,3 +1,6 @@
+from collections.abc import Awaitable
+from typing import cast
+
 from fastapi import APIRouter, Depends, Response
 
 from app.api.auth.router import router as auth_router
@@ -21,19 +24,29 @@ async def health_check(
     response: Response,
     container: ApplicationContainer = Depends(get_application_container),  # noqa: B008
 ) -> HealthResponse:
-    is_db_healthy = await container.health_checker.is_healthy()
+    components: dict[str, str] = {}
 
-    if not is_db_healthy:
+    is_db_healthy = await container.health_checker.is_healthy()
+    components["database"] = "connected" if is_db_healthy else "disconnected"
+
+    if container.redis_client is not None:
+        try:
+            await cast(
+                Awaitable[bool],
+                container.redis_client.ping(),
+            )
+            components["redis"] = "connected"
+        except Exception:
+            components["redis"] = "disconnected"
+
+    healthy = all(value == "connected" for value in components.values())
+
+    if not healthy:
         response.status_code = 503
 
-        return HealthResponse(
-            status="unhealthy",
-            components={"database": "disconnected"},
-        )
-
     return HealthResponse(
-        status="healthy",
-        components={"database": "connected"},
+        status="healthy" if healthy else "unhealthy",
+        components=components,
     )
 
 
