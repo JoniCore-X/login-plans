@@ -41,28 +41,21 @@ Resultado esperado:
 {"status":"healthy","components":{"database":"connected","redis":"connected"}}
 ```
 
-Registra un usuario y obtén el token de verificación de los logs (el `ConsoleEmailSender` lo imprime destacado):
-
-```bash
-curl -X POST http://localhost:8000/api/v1/auth/register -H "Content-Type: application/json" -d "{\"email\": \"test@example.com\", \"password\": \"Test123456!\"}"
-docker compose logs app | grep "VERIFICATION TOKEN"
-```
-
-> **Nota Windows:** los comandos curl usan comillas simples ('...'), válidas en bash y PowerShell. En cmd.exe usa comillas dobles y escapa las internas: -d \"{\"email\":\"x@y.com\"...}\". Recomendado: PowerShell o Git Bash.
-
-En Windows PowerShell, busca el token con:
+Todo el flujo de usuario (registro → verificación → login → primer plan) se verifica con un comando, sin depender de quoting de tu shell:
 
 ```powershell
-docker compose logs app | Select-String "VERIFICATION TOKEN"
+powershell -ExecutionPolicy Bypass -File scripts\verify_install.ps1
 ```
-
-Verifica el email, haz login y crea tu primer plan (sustituye `TOKEN` y `CREDENTIAL` por los valores obtenidos):
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/auth/verify-email -H "Content-Type: application/json" -d "{\"token\": \"TOKEN\"}"
-curl -X POST http://localhost:8000/api/v1/auth/login -H "Content-Type: application/json" -d "{\"email\": \"test@example.com\", \"password\": \"Test123456!\"}"
-curl -X POST http://localhost:8000/api/v1/plans -H "Content-Type: application/json" -H "Authorization: Bearer CREDENTIAL" -d "{\"name\": \"Mi primer plan\"}"
+bash scripts/verify_install.sh
 ```
+
+Salida esperada: `INSTALACIÓN VERIFICADA — todos los pasos OK`.
+
+El script registra un usuario, extrae el `VERIFICATION TOKEN` de los logs, verifica el email, hace login y crea un plan. Si prefieres hacerlo manualmente, los endpoints son `POST /api/v1/auth/register`, `POST /api/v1/auth/verify-email`, `POST /api/v1/auth/login` y `POST /api/v1/plans` (ver Swagger en http://localhost:8000/docs).
+
+> **Nota:** la contraseña debe tener mínimo 12 caracteres con mezcla de caracteres (política de seguridad del dominio).
 ## Desarrollo local (API en tu máquina, datos en Docker)
 
 Para modificar el código con hot reload:
@@ -270,6 +263,7 @@ Variables de entorno (ver `.env.example`):
 ## Licencia
 
 MIT
+
 
 
 
