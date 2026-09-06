@@ -55,8 +55,7 @@ Salida esperada: `INSTALACIÓN VERIFICADA — todos los pasos OK`.
 
 El script registra un usuario, extrae el `VERIFICATION TOKEN` de los logs, verifica el email, hace login y crea un plan. Si prefieres hacerlo manualmente, los endpoints son `POST /api/v1/auth/register`, `POST /api/v1/auth/verify-email`, `POST /api/v1/auth/login` y `POST /api/v1/plans` (ver Swagger en http://localhost:8000/docs).
 
-> **Nota:** la contraseña debe tener mínimo 12 caracteres con mezcla de caracteres (política de seguridad del dominio).
-## Desarrollo local (API en tu máquina, datos en Docker)
+> **Nota:** la contraseña debe tener mínimo 12 caracteres con mezcla de caracteres (política de seguridad del dominio).`r`n`r`n## Desarrollo local (API en tu máquina, datos en Docker)
 
 Para modificar el código con hot reload — setup completo en un solo comando:
 
@@ -90,8 +89,7 @@ pytest -q          # serial
 pytest -n auto -q  # paralelo (pytest-xdist)
 mypy app
 ruff check .
-```
-## Nuevo proyecto desde cero (Cookiecutter)
+````r`n`r`n## Nuevo proyecto desde cero (Cookiecutter)
 
 Si estás empezando un SaaS nuevo y quieres esta arquitectura desde el día 1:
 
@@ -112,8 +110,7 @@ docker compose up -d
 ```
 
 Genera el proyecto completo renombrado (nombre, contenedores Docker, bases
-de datos, `pyproject.toml`, `.env.example`, tests) listo para desarrollar.
-## CLI `login-plans` (próximamente)
+de datos, `pyproject.toml`, `.env.example`, tests) listo para desarrollar.`r`n`r`n## CLI `login-plans` (próximamente)
 
 Experiencia todo-en-uno en desarrollo activo:
 
@@ -125,8 +122,7 @@ lp up                            # Stack completo (Docker por dentro)
 lp deploy --env prod             # Deploy guiado a producción
 ```
 
-Mientras tanto, los tres métodos anteriores cubren el mismo flujo.
-## Integración como dependencia (próximamente)
+Mientras tanto, los tres métodos anteriores cubren el mismo flujo.`r`n`r`n## Integración como dependencia (próximamente)
 
 Para agregar auth + planes a un proyecto FastAPI existente sin reescribirlo:
 
@@ -208,11 +204,6 @@ El token solo se imprime cuando `APP_ENV != production`. En
 Es intencional (fail-closed). Verifica `docker compose ps` → redis healthy.
 Sin `REDIS_URL` la app usa rate limiting in-memory.
 
-## Siguiente paso
-
-- [AGENTS.md](AGENTS.md) — arquitectura, leyes inmutables, patrones
-- [docs/CUSTOMIZATION.md](docs/CUSTOMIZATION.md) — adaptar a tu proyecto
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — checklist de producción
 ## Observabilidad
 
 | Servicio | URL | Uso |
@@ -259,6 +250,7 @@ Variables de entorno (ver `.env.example`):
 ## Licencia
 
 MIT
+
 
 
 
