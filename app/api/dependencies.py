@@ -5,6 +5,7 @@ from fastapi import Request
 
 from app.application.auth.services import (
     AuthenticationService,
+    ChangePasswordService,
     LogoutService,
     RotateSessionService,
 )
@@ -73,6 +74,14 @@ def get_rotate_session_service(
     container = get_application_container(request)
 
     return container.create_rotate_session_service()
+
+
+def get_change_password_service(
+    request: Request,
+) -> ChangePasswordService:
+    container = get_application_container(request)
+
+    return container.create_change_password_service()
 
 
 def get_create_plan_service(

@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from app.application.auth.services import (
     AuthenticationService,
+    ChangePasswordService,
     LogoutService,
     RotateSessionService,
 )
@@ -138,6 +139,15 @@ class ApplicationContainer:
         return AuthenticationService(
             unit_of_work_factory=self.unit_of_work_factory,
             credential_generator=self.credential_generator,
+            clock=self.clock,
+        )
+
+    def create_change_password_service(
+        self,
+    ) -> ChangePasswordService:
+        return ChangePasswordService(
+            unit_of_work_factory=self.unit_of_work_factory,
+            password_hasher=self.password_hasher,
             clock=self.clock,
         )
 

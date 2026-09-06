@@ -22,6 +22,15 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class ChangePasswordRequest(BaseModel):
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+    )
+
+    current_password: str
+    new_password: str
+
+
 class LoginResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,

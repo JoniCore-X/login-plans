@@ -52,6 +52,12 @@ class FakeUserRepository(UserRepository):
 
         return None
 
+    async def update(self, user: User) -> None:
+        for index, existing in enumerate(self.users):
+            if existing.id == user.id:
+                self.users[index] = user
+                return
+
 
 class FakeSessionRepository(SessionRepository):
     def __init__(self) -> None:

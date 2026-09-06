@@ -8,6 +8,7 @@ from app.api.auth.dependencies import (
     get_bearer_credential,
 )
 from app.api.auth.schemas import (
+    ChangePasswordRequest,
     LoginRequest,
     LoginResponse,
     MeResponse,
@@ -15,6 +16,7 @@ from app.api.auth.schemas import (
     UserResponse,
 )
 from app.api.dependencies import (
+    get_change_password_service,
     get_login_user_service,
     get_logout_service,
     get_register_user_service,
@@ -22,10 +24,12 @@ from app.api.dependencies import (
 )
 from app.application.auth.dto import AuthenticatedUser
 from app.application.auth.services import (
+    ChangePasswordService,
     LogoutService,
     RotateSessionService,
 )
 from app.application.users.commands import (
+    ChangePasswordCommand,
     LoginUserCommand,
     RegisterUserCommand,
 )
@@ -156,4 +160,29 @@ async def rotate(
         session_id=result.session_id,
         credential=result.credential,
         expires_at=result.expires_at,
+    )
+
+
+@router.post(
+    "/change-password",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def change_password(
+    request: ChangePasswordRequest,
+    authenticated_user: Annotated[
+        AuthenticatedUser,
+        Depends(get_authenticated_user),
+    ],
+    service: Annotated[
+        ChangePasswordService,
+        Depends(get_change_password_service),
+    ],
+) -> None:
+    await service.execute(
+        ChangePasswordCommand(
+            user_id=authenticated_user.user_id,
+            session_id=authenticated_user.session_id,
+            current_password=request.current_password,
+            new_password=request.new_password,
+        ),
     )

@@ -25,3 +25,10 @@ class UserRepository(ABC):
         user: User,
     ) -> None:
         raise NotImplementedError
+
+    @abstractmethod
+    async def update(
+        self,
+        user: User,
+    ) -> None:
+        raise NotImplementedError

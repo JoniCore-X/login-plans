@@ -46,6 +46,22 @@ class PostgresUserRepository(UserRepository):
 
         return user_to_domain(model)
 
+    async def update(self, user: User) -> None:
+        result = await self.session.execute(
+            select(UserModel).where(
+                UserModel.id == user.id.value,
+            ),
+        )
+
+        model = result.scalar_one_or_none()
+
+        if model is None:
+            return
+
+        model.password_hash = user.password_hash.value
+        model.status = user.status.value
+        model.updated_at = user.updated_at
+
     async def get_by_email(
         self,
         email: Email,

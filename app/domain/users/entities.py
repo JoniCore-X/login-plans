@@ -1,7 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID
 
+from app.domain.events import DomainEvent, PasswordChanged
 from app.domain.users.enums import UserStatus
 from app.domain.users.exceptions import InvalidUserStateTransition
 from app.domain.users.value_objects import (
@@ -19,6 +20,34 @@ class User:
     status: UserStatus
     created_at: datetime
     updated_at: datetime
+    _events: list[DomainEvent] = field(
+        default_factory=list,
+        repr=False,
+    )
+
+    def register_event(self, event: DomainEvent) -> None:
+        self._events.append(event)
+
+    def pull_events(self) -> list[DomainEvent]:
+        events = self._events
+        self._events = []
+        return events
+
+    def change_password(
+        self,
+        *,
+        new_hash: PasswordHash,
+        now: datetime,
+    ) -> None:
+        self.password_hash = new_hash
+        self.updated_at = now
+
+        self.register_event(
+            PasswordChanged(
+                occurred_at=now,
+                user_id=self.id.value,
+            ),
+        )
 
     @classmethod
     def create(

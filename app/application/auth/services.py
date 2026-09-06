@@ -3,12 +3,15 @@ from uuid import uuid4
 from app.application.auth.dto import AuthenticatedUser
 from app.application.auth.exceptions import AuthenticationError
 from app.application.ports.clock import Clock
+from app.application.ports.password_hasher import PasswordHasher
 from app.application.ports.session_credentials import (
     SessionCredentialGenerator,
 )
 from app.application.ports.unit_of_work import UnitOfWork
 from app.application.ports.unit_of_work_factory import UnitOfWorkFactory
+from app.application.users.commands import ChangePasswordCommand
 from app.application.users.dto import AuthenticationDTO
+from app.application.users.exceptions import InvalidCredentialsError
 from app.domain.events import (
     ReplayAttackDetected,
     SessionRevoked,
@@ -16,6 +19,11 @@ from app.domain.events import (
 )
 from app.domain.sessions.entities import Session
 from app.domain.sessions.value_objects import SessionCredential
+from app.domain.users.value_objects import (
+    PlainPassword,
+    UserId,
+    WeakPasswordError,
+)
 
 
 class AuthenticationService:
@@ -158,6 +166,82 @@ class LogoutService:
                     user_id=session.user_id.value,
                 ),
             )
+
+
+class ChangePasswordService:
+    def __init__(
+        self,
+        unit_of_work_factory: UnitOfWorkFactory,
+        password_hasher: PasswordHasher,
+        clock: Clock,
+    ) -> None:
+        self.unit_of_work_factory = unit_of_work_factory
+        self.password_hasher = password_hasher
+        self.clock = clock
+
+    async def execute(
+        self,
+        command: ChangePasswordCommand,
+    ) -> None:
+        new_password = PlainPassword(command.new_password)
+
+        try:
+            current_password = PlainPassword(command.current_password)
+        except WeakPasswordError:
+            raise InvalidCredentialsError(
+                "Invalid credentials.",
+            ) from None
+
+        unit_of_work = self.unit_of_work_factory.create()
+
+        async with unit_of_work:
+            user = await unit_of_work.users.get_by_id(
+                UserId(command.user_id),
+            )
+
+            if user is None or not user.can_authenticate():
+                raise InvalidCredentialsError(
+                    "Invalid credentials.",
+                )
+
+            if not self.password_hasher.verify(
+                current_password,
+                user.password_hash,
+            ):
+                raise InvalidCredentialsError(
+                    "Invalid credentials.",
+                )
+
+            now = self.clock.now()
+
+            user.change_password(
+                new_hash=self.password_hasher.hash(new_password),
+                now=now,
+            )
+
+            await unit_of_work.users.update(user)
+
+            for event in user.pull_events():
+                unit_of_work.collect_event(event)
+
+            sessions = await unit_of_work.sessions.get_by_user_id(
+                UserId(command.user_id),
+            )
+
+            for session in sessions:
+                if session.id.value != command.session_id and session.is_active(
+                    now=now
+                ):
+                    session.revoke(now=now)
+                    await unit_of_work.sessions.update(session)
+
+                    unit_of_work.collect_event(
+                        SessionRevoked(
+                            occurred_at=now,
+                            session_id=session.id.value,
+                            user_id=session.user_id.value,
+                        ),
+                    )
 
 
 class RotateSessionService:
