@@ -3,3 +3,7 @@ contact_links:
   - name: Discussions
     url: https://github.com/JoniCore-X/login-plans/discussions
     about: General questions and ideas — prefer Discussions over Issues for open-ended topics.
+  - name: Contacto directo
+    url: mailto:jonicorex40@gmail.com
+    about: Reportar errores o contactar al mantenedor.
+

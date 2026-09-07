@@ -266,6 +266,13 @@ Variante endurecida: sin puertos internos expuestos, `APP_ENV=production`,
 secretos obligatorios, email real vía Resend. Detalles en
 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
+
+## Contacto y soporte
+
+- Bugs y errores: [Issues](https://github.com/JoniCore-X/login-plans/issues)
+- Preguntas: [Discussions](https://github.com/JoniCore-X/login-plans/discussions)
+- Seguridad: ver [SECURITY.md](SECURITY.md) o escribe a jonicorex40@gmail.com
+
 ## Licencia
 
 MIT

@@ -29,7 +29,7 @@ Examples of unacceptable behavior:
 ## Enforcement
 
 Instances of unacceptable behavior may be reported to the project maintainer
-via GitHub. All complaints will be reviewed and investigated promptly and
+via GitHub o al correo **jonicorex40@gmail.com**. All complaints will be reviewed and investigated promptly and
 fairly. The project team is obligated to maintain confidentiality with regard
 to the reporter of an incident.
 
@@ -37,3 +37,4 @@ to the reporter of an incident.
 
 This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org),
 version 2.1.
+
