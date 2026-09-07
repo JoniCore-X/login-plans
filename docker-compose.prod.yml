@@ -1,0 +1,87 @@
+# Producción — usar con:
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+#
+# Diferencias vs desarrollo:
+#   - Sin puertos expuestos para postgres/redis (solo red interna)
+#   - APP_ENV=production (token de verificación nunca en logs)
+#   - Credenciales obligatorias via .env.production (falla si faltan)
+#   - Sin Jaeger/Prometheus locales (usa tu stack de observabilidad externo)
+#   - La API se expone solo en APP_PORT; se asume reverse proxy con TLS delante
+
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: login_plans_postgres_prod
+    restart: always
+
+    environment:
+      POSTGRES_DB: login_plans
+      POSTGRES_USER: login_plans
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD requerido en .env.production}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U login_plans -d login_plans"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: login_plans_redis_prod
+    restart: always
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: login-plans-app:latest
+    container_name: login_plans_app_prod
+    restart: always
+
+    environment:
+      APP_ENV: production
+      DEBUG: "false"
+      DATABASE_URL: postgresql+asyncpg://login_plans:${POSTGRES_PASSWORD}@postgres:5432/login_plans
+      REDIS_URL: redis://redis:6379/0
+      CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS requerido en .env.production}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@example.com}
+      EMAIL_VERIFY_BASE_URL: ${EMAIL_VERIFY_BASE_URL:-http://localhost:8000/verify}
+      OTLP_ENDPOINT: ${OTLP_ENDPOINT:-}
+      ENABLE_TRACING: ${ENABLE_TRACING:-false}
+
+    ports:
+      - "${APP_PORT:-8000}:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+
+volumes:
+  postgres_data:
+  redis_data:
