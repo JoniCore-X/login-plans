@@ -254,6 +254,18 @@ Variables de entorno (ver `.env.example`):
 | `CORS_ORIGINS` | localhost dev | Orígenes permitidos (coma-separados) |
 | `APP_ENV` | `development` | `development` / `test` / `production` |
 
+
+## Despliegue en producción
+
+```bash
+cp .env.production.example .env.production
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+```
+
+Variante endurecida: sin puertos internos expuestos, `APP_ENV=production`,
+secretos obligatorios, email real vía Resend. Detalles en
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
 ## Licencia
 
 MIT
