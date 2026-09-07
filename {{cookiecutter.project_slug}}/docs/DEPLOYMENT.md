@@ -3,6 +3,33 @@
 Checklist para llevar esta plantilla a producción real. Nada de esto es
 opcional si vas a exponer datos de usuarios.
 
+## 0. Stack de producción (docker-compose.prod.yml)
+
+El repo trae dos variantes:
+
+| Archivo | Uso |
+|---|---|
+| `docker-compose.yml` | Desarrollo/prueba — credenciales dev, Jaeger+Prometheus, `APP_ENV=development` |
+| `docker-compose.prod.yml` | Producción — sin puertos internos expuestos, `APP_ENV=production`, secretos obligatorios, sin observabilidad local |
+
+Despliegue:
+
+```bash
+cp .env.production.example .env.production   # rellenar valores reales
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+```
+
+Diferencias clave de la versión prod:
+
+- `POSTGRES_PASSWORD` y `CORS_ORIGINS` son **obligatorios** — el compose
+  falla con error explícito si faltan
+- Postgres y Redis **no exponen puertos** al host (solo red interna)
+- `APP_ENV=production` → el token de verificación nunca aparece en logs;
+  requiere `RESEND_API_KEY` para que el email llegue de verdad
+- La app sigue corriendo `alembic upgrade head` al arrancar
+- Jaeger/Prometheus no se levantan — conecta tu collector/Prometheus
+  externo via `OTLP_ENDPOINT`
+
 ## 1. Secrets — nunca `.env` en producción
 
 - **AWS Secrets Manager / Vault / variables del orquestador** para:
@@ -117,3 +144,4 @@ curl -X POST https://api.tudominio.com/api/v1/auth/register \
   -d '{"email":"ops@tudominio.com","password":"ChangeMe-1234!"}'
 # → verificar que el email llega por el provider real
 ```
+

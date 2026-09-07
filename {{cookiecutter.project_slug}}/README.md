@@ -24,87 +24,197 @@ Este proyecto es una **PLANTILLA** de alta calidad, no un producto terminado. In
 
 ## Quick Start (5 minutos)
 
+Clona y levanta el stack completo (Postgres + Redis + App + Prometheus + Jaeger). La app corre las migraciones automáticamente al arrancar:
+
 ```bash
-# 1. Clonar
-git clone <url-del-repo>
+git clone https://github.com/JoniCore-X/login-plans.git
 cd {{cookiecutter.project_name}}
-
-# 2. Levantar stack completo (Postgres + Redis + App + Prometheus + Jaeger)
 docker compose up -d
-
-# La app corre las migraciones automáticamente al arrancar.
-# Espera ~30s hasta que `docker compose ps` muestre todo healthy.
-
-# 3. Verificar
-curl http://localhost:8000/api/v1/health
-# {"status":"healthy","components":{"database":"connected","redis":"connected"}}
-
-# 4. Registrar un usuario
-curl -X POST http://localhost:8000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "password": "Test123456!"}'
-
-# 5. Obtener el token de verificación de los logs
-docker compose logs app | Select-String "VERIFICATION TOKEN"   # PowerShell
-docker compose logs app | grep "VERIFICATION TOKEN"            # bash
-
-# 6. Verificar el email
-curl -X POST http://localhost:8000/api/v1/auth/verify-email \
-  -H "Content-Type: application/json" \
-  -d '{"token": "TOKEN_OBTENIDO_DE_LOGS"}'
-
-# 7. Login
-curl -X POST http://localhost:8000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "password": "Test123456!"}'
-# → {"credential": "...", "expires_at": "..."}
-
-# 8. Crear un plan (requiere email verificado)
-curl -X POST http://localhost:8000/api/v1/plans \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <credential>" \
-  -d '{"name": "Mi primer plan"}'
+docker compose ps
 ```
+
+Espera ~30 segundos hasta que `docker compose ps` muestre todo `healthy`. Verifica:
+
+```bash
+curl http://localhost:8000/api/v1/health
+```
+
+Resultado esperado:
+
+```json
+{"status":"healthy","components":{"database":"connected","redis":"connected"}}
+```
+
+Todo el flujo de usuario (registro → verificación → login → primer plan) se verifica con un comando, sin depender de quoting de tu shell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\verify_install.ps1
+```
+
+```bash
+bash scripts/verify_install.sh
+```
+
+Salida esperada: `INSTALACIÓN VERIFICADA — todos los pasos OK`.
+
+El script registra un usuario, extrae el `VERIFICATION TOKEN` de los logs, verifica el email, hace login y crea un plan. Si prefieres hacerlo manualmente, los endpoints son `POST /api/v1/auth/register`, `POST /api/v1/auth/verify-email`, `POST /api/v1/auth/login` y `POST /api/v1/plans` (ver Swagger en http://localhost:8000/docs).
+
+> **Nota:** la contraseña debe tener mínimo 12 caracteres con mezcla de caracteres (política de seguridad del dominio).
 
 ## Desarrollo local (API en tu máquina, datos en Docker)
 
-Para modificar el código con hot reload:
+Para modificar el código con hot reload — setup completo en un solo comando:
 
-```bash
-# 1. Entorno virtual
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1        # Windows
-source .venv/bin/activate            # Linux/macOS
-
-# 2. Dependencias (incluye pytest, mypy, ruff, alembic)
-pip install -r requirements.txt
-
-# 3. Configuración — las credenciales dev ya coinciden con docker-compose.yml
-cp .env.example .env                 # Windows: copy .env.example .env
-
-# 4. Solo las bases de datos en Docker
-docker compose up -d postgres redis
-
-# 5. Migraciones
-alembic upgrade head
-
-# 6. API local con hot reload
-uvicorn app.main:app --reload --port 8000
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\dev_setup.ps1
 ```
 
-`uvicorn` arranca en http://localhost:8000 con `--reload` — los cambios se
-reflejan al guardar. Health: `curl http://localhost:8000/api/v1/health`.
+```bash
+bash scripts/dev_setup.sh
+```
+
+El script crea el venv, instala dependencias, copia `.env`, levanta
+Postgres+Redis en Docker y corre las migraciones. Luego arranca la API:
+
+```powershell
+.\.venv\Scripts\uvicorn app.main:app --reload --port 8000
+```
+
+```bash
+./.venv/bin/uvicorn app.main:app --reload --port 8000
+```
+
+Requisitos: Python 3.12+, Docker (solo para Postgres/Redis), pip.
+> **Consejo Windows:** ejecuta los comandos línea por línea, o usa los scripts
+> — pegar bloques enteros en `cmd.exe` puede perder los saltos de línea.
 
 Tests:
 
-```bash
+```text
 pytest -q          # serial
 pytest -n auto -q  # paralelo (pytest-xdist)
 mypy app
 ruff check .
 ```
+## Nuevo proyecto desde cero (Cookiecutter)
 
-Requisitos: Python 3.12+, Docker (solo para Postgres/Redis), pip.
+Si estás empezando un SaaS nuevo y quieres esta arquitectura desde el día 1:
+
+```bash
+pip install cookiecutter
+cookiecutter https://github.com/JoniCore-X/login-plans --checkout template
+
+# Responde las preguntas:
+#   project_name [My SaaS]: fitness-tracker
+#   project_slug [fitness_tracker]:
+#   author_name  [Your Name]: Tu Nombre
+#   email        [you@example.com]: tu@email.com
+#   use_stripe   [n]: y
+#   use_oauth    [n]: y
+
+cd fitness-tracker
+docker compose up -d
+```
+
+Genera el proyecto completo renombrado (nombre, contenedores Docker, bases
+de datos, `pyproject.toml`, `.env.example`, tests) listo para desarrollar.
+
+## CLI `{{cookiecutter.project_name}}` (próximamente)
+
+Experiencia todo-en-uno en desarrollo activo:
+
+```bash
+pipx install {{cookiecutter.project_name}}-cli     # próximamente
+
+lp init mi-saas                  # Genera proyecto (cookiecutter por dentro)
+lp up                            # Stack completo (Docker por dentro)
+lp deploy --env prod             # Deploy guiado a producción
+```
+
+Mientras tanto, los tres métodos anteriores cubren el mismo flujo.
+
+## Integración como dependencia (próximamente)
+
+Para agregar auth + planes a un proyecto FastAPI existente sin reescribirlo:
+
+```bash
+# próximamente — empaquetado como librería instalable
+pip install {{cookiecutter.project_name}}
+```
+
+```python
+# Uso planeado: montar el router y container en tu app existente
+from {{cookiecutter.project_slug}}.api import router as {{cookiecutter.project_slug}}_router
+
+app.include_router({{cookiecutter.project_slug}}_router, prefix="/api/v1")
+```
+
+Estado: en desarrollo. Hoy el camino equivalente es clonar el repo y
+adaptar — los puertos (`app/application/ports/`) ya están diseñados para
+inyectar sobre tu infraestructura existente.
+
+## Comparación rápida
+
+| Método | Tiempo | Para quién | Curva |
+|---|---|---|---|
+| Docker Compose | ~5 min | Probar / demo | Baja |
+| Git clone + venv | ~10 min | Desarrolladores | Media |
+| Cookiecutter | ~3 min | Proyectos nuevos | Baja |
+| CLI `lp` | ~1 min | Todos (futuro) | Mínima |
+| Dependencia | ~15 min | Integración avanzada | Alta |
+
+## Verificación post-instalación
+
+Independientemente del método:
+
+```bash
+curl http://localhost:8000/api/v1/health
+curl -X POST http://localhost:8000/api/v1/auth/register -H "Content-Type: application/json" -d "{\"email\":\"verify@example.com\",\"password\":\"Strong-password-123!\"}"
+```
+
+Health debe responder `{"status":"healthy",...}` y el registro `201`.
+Luego: token en logs → verificar email → login → crear plan
+(pasos completos en el Quick Start).
+
+Si todos devuelven 200/201/204, la instalación es correcta.
+
+## Troubleshooting
+
+**`Port 8000 already in use`**
+
+```bash
+# Windows: encontrar y liberar el puerto
+netstat -ano | findstr :8000
+Stop-Process -Id <PID> -Force
+
+# O cambia el puerto en docker-compose.yml → "8001:8000"
+```
+
+**`Database connection failed`**
+
+```bash
+docker compose ps            # postgres debe estar healthy
+docker compose logs postgres # causa raíz
+# Credenciales: {{cookiecutter.project_slug}} / {{cookiecutter.project_slug}}_dev_password (solo dev)
+```
+
+**`Migrations failed`**
+
+```bash
+docker compose exec app alembic current   # estado actual
+docker compose logs app | Select-String "alembic"   # PowerShell
+```
+
+**`VERIFICATION TOKEN` no aparece en logs**
+
+El token solo se imprime cuando `APP_ENV != production`. En
+`docker-compose.yml` del repo ya es `development`. En local, revisa tu `.env`.
+
+**Redis caído → login devuelve 500**
+
+Es intencional (fail-closed). Verifica `docker compose ps` → redis healthy.
+Sin `REDIS_URL` la app usa rate limiting in-memory.
+
 ## Observabilidad
 
 | Servicio | URL | Uso |
@@ -148,16 +258,27 @@ Variables de entorno (ver `.env.example`):
 | `CORS_ORIGINS` | localhost dev | Orígenes permitidos (coma-separados) |
 | `APP_ENV` | `development` | `development` / `test` / `production` |
 
+
+## Despliegue en producción
+
+```bash
+cp .env.production.example .env.production
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+```
+
+Variante endurecida: sin puertos internos expuestos, `APP_ENV=production`,
+secretos obligatorios, email real vía Resend. Detalles en
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
 ## Licencia
 
 MIT
-
-
-
 ## Próximas integraciones
 {% if cookiecutter.use_stripe == "y" %}
-- **Stripe:** agrega el agregado `Billing` siguiendo la receta de `docs/CUSTOMIZATION.md` (puerto `PaymentGateway` en application, adaptador Stripe en infrastructure). No hay código pre-generado — la arquitectura está lista para recibirlo.
+- **Stripe:** agrega el agregado `Billing` siguiendo `docs/CUSTOMIZATION.md` (puerto `PaymentGateway` en application, adaptador Stripe en infrastructure). No hay código pre-generado — la arquitectura está lista para recibirlo.
 {% endif %}
 {% if cookiecutter.use_oauth == "y" %}
-- **OAuth (Google/GitHub/Apple):** extiende `IdentityProvider` con un adaptador OAuth — ver `docs/CUSTOMIZATION.md`. El dominio ya soporta `provider_id` externo.
+- **OAuth (Google/GitHub/Apple):** extiende `IdentityProvider` con un adaptador OAuth — ver `docs/CUSTOMIZATION.md`.
 {% endif %}
+
+
